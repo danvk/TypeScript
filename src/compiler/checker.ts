@@ -37347,12 +37347,14 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         if (!initType) {
                             continue;
                         }
-                        const narrowedParamType = getFlowTypeOfReference(param, initType, initType, func, {
+                        const trueCondition: FlowCondition = {
                             // synthesized TrueCondition
-                            flags: FlowFlags.TrueCondition & FlowFlags.Referenced & FlowFlags.Shared,
+                            flags: FlowFlags.TrueCondition | FlowFlags.Referenced | FlowFlags.Shared,
                             node: expr,
                             antecedent: (expr as Expression & {flowNode: FlowNode}).flowNode,
-                        });
+                        };
+                        const id = factory.createIdentifier('x');
+                        const narrowedParamType = getFlowTypeOfReference(id, initType, initType, func, trueCondition);
                         if (narrowedParamType !== initType) {
                             console.log('narrowed parameter type from', initType, 'to', narrowedParamType);
                         }
