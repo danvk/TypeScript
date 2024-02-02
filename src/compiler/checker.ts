@@ -393,6 +393,7 @@ import {
     hasOnlyExpressionInitializer,
     hasOverrideModifier,
     hasPossibleExternalModuleReference,
+    hasProperty,
     hasQuestionToken,
     hasResolutionModeOverride,
     hasRestParameter,
@@ -37339,6 +37340,23 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 }
                 if (type.flags & TypeFlags.Never) {
                     hasReturnOfTypeNever = true;
+                }
+                if (type === booleanType && hasProperty(expr, 'flowNode')) {
+                    for (const param of func.parameters) {
+                        const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
+                        if (!initType) {
+                            continue;
+                        }
+                        const narrowedParamType = getFlowTypeOfReference(param, initType, initType, func, {
+                            // synthesized TrueCondition
+                            flags: FlowFlags.TrueCondition & FlowFlags.Referenced & FlowFlags.Shared,
+                            node: expr,
+                            antecedent: (expr as Expression & {flowNode: FlowNode}).flowNode,
+                        });
+                        if (narrowedParamType !== initType) {
+                            console.log('narrowed parameter type from', initType, 'to', narrowedParamType);
+                        }
+                    }
                 }
                 pushIfUnique(aggregatedTypes, type);
             }
