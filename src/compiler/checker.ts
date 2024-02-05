@@ -37308,6 +37308,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
     /** NOTE: Return value of `[]` means a different thing than `undefined`. `[]` means func returns `void`, `undefined` means it returns `never`. */
     function checkAndAggregateReturnExpressionTypes(func: FunctionLikeDeclaration, checkMode: CheckMode | undefined): Type[] | undefined {
+        // console.log('checkAndAggregateReturnExpressionTypes', (func as any).getText());
         const functionFlags = getFunctionFlags(func);
         const aggregatedTypes: Type[] = [];
         let hasReturnWithNoExpression = functionHasImplicitReturn(func);
@@ -37341,7 +37342,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 if (type.flags & TypeFlags.Never) {
                     hasReturnOfTypeNever = true;
                 }
-                if (type === booleanType && hasProperty(expr, 'flowNode') && func.body) {
+                if (type === booleanType && func.body) {
                     for (const param of func.parameters) {
                         const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
                         if (!initType) {
@@ -37351,9 +37352,9 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                             // synthesized TrueCondition
                             flags: FlowFlags.TrueCondition | FlowFlags.Referenced | FlowFlags.Shared,
                             node: expr,
-                            antecedent: (expr as Expression & {flowNode: FlowNode}).flowNode,
+                            antecedent: (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start },
                         };
-                        // Find a reference to try refining
+                        // Find a reference to try refining; there must be a better way!
                         const paramId = forEachChildRecursively(func.body, (node) => {
                             if (isIdentifier(node) && getResolvedSymbol(node) === param.symbol) {
                                 return node;
@@ -37362,7 +37363,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         if (paramId) {
                             const narrowedParamType = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
                             if (narrowedParamType !== initType) {
-                                console.log('narrowed parameter type from', initType, 'to', narrowedParamType);
+                                console.log('function narrows parameter ', (param.name as any).getText(), ' from', typeToString(initType), 'to', typeToString(narrowedParamType));
                             }
                         }
                     }
