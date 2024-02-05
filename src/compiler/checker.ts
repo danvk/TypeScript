@@ -37341,7 +37341,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 if (type.flags & TypeFlags.Never) {
                     hasReturnOfTypeNever = true;
                 }
-                if (type === booleanType && hasProperty(expr, 'flowNode')) {
+                if (type === booleanType && hasProperty(expr, 'flowNode') && func.body) {
                     for (const param of func.parameters) {
                         const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
                         if (!initType) {
@@ -37353,11 +37353,17 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                             node: expr,
                             antecedent: (expr as Expression & {flowNode: FlowNode}).flowNode,
                         };
-                        // const id = factory.createIdentifier('x');
-                        // const narrowedParamType = getFlowTypeOfReference(id, initType, initType, func, trueCondition);
-                        const narrowedParamType = getFlowTypeOfReference(param, initType, initType, func, trueCondition);
-                        if (narrowedParamType !== initType) {
-                            console.log('narrowed parameter type from', initType, 'to', narrowedParamType);
+                        // Find a reference to try refining
+                        const paramId = forEachChildRecursively(func.body, (node) => {
+                            if (isIdentifier(node) && getResolvedSymbol(node) === param.symbol) {
+                                return node;
+                            }
+                        });
+                        if (paramId) {
+                            const narrowedParamType = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
+                            if (narrowedParamType !== initType) {
+                                console.log('narrowed parameter type from', initType, 'to', narrowedParamType);
+                            }
                         }
                     }
                 }
