@@ -3,4 +3,7 @@ function isNonNull(x: number | null) {
   return x !== null;
 }
 
-// let check: boolean = isNonNull(12);
+declare let tNN: number | null;
+if (isNonNull(tNN)) {
+  let t: number = tNN;
+}

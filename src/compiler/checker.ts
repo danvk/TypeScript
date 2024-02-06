@@ -15439,9 +15439,16 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         jsdocPredicate = getTypePredicateOfSignature(jsdocSignature);
                     }
                 }
-                signature.resolvedTypePredicate = type && isTypePredicateNode(type) ?
-                    createTypePredicateFromTypePredicateNode(type, signature) :
-                    jsdocPredicate || noTypePredicate;
+                if (type || jsdocPredicate) {
+                    signature.resolvedTypePredicate = type && isTypePredicateNode(type) ?
+                        createTypePredicateFromTypePredicateNode(type, signature) :
+                        jsdocPredicate || noTypePredicate;
+                } else if (signature.declaration && isFunctionLikeDeclaration(signature.declaration) && (!signature.resolvedReturnType || signature.resolvedReturnType === booleanType)) {
+                    const {declaration} = signature;
+                    signature.resolvedTypePredicate = getTypePredicateFromBody(declaration) || noTypePredicate;
+                } else {
+                    signature.resolvedTypePredicate = noTypePredicate;
+                }
             }
             Debug.assert(!!signature.resolvedTypePredicate);
         }
@@ -37360,10 +37367,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             // Javascript "callable constructors", containing eg `if (!(this instanceof A)) return new A()` should not add undefined
             pushIfUnique(aggregatedTypes, undefinedType);
         }
-        if (doTypePredCheck) {
-            const pred = getTypePredicateFromBody(func);
-            console.log(pred);
-        }
         return aggregatedTypes;
     }
     function mayReturnNever(func: FunctionLikeDeclaration): boolean {
@@ -37420,7 +37423,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         if (paramId) {
                             const narrowedParamType = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
                             if (narrowedParamType !== initType) {
-                                console.log('function narrows parameter ', (param.name as any).getText(), ' from', typeToString(initType), 'to', typeToString(narrowedParamType));
+                                // console.log('function narrows parameter ', (param.name as any).getText(), ' from', typeToString(initType), 'to', typeToString(narrowedParamType));
                                 aggregatedPredicates.push([i, narrowedParamType]);
                             }
                         }
