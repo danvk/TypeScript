@@ -393,7 +393,6 @@ import {
     hasOnlyExpressionInitializer,
     hasOverrideModifier,
     hasPossibleExternalModuleReference,
-    hasProperty,
     hasQuestionToken,
     hasResolutionModeOverride,
     hasRestParameter,
@@ -37308,11 +37307,11 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
     /** NOTE: Return value of `[]` means a different thing than `undefined`. `[]` means func returns `void`, `undefined` means it returns `never`. */
     function checkAndAggregateReturnExpressionTypes(func: FunctionLikeDeclaration, checkMode: CheckMode | undefined): Type[] | undefined {
-        // console.log('checkAndAggregateReturnExpressionTypes', (func as any).getText());
         const functionFlags = getFunctionFlags(func);
         const aggregatedTypes: Type[] = [];
         let hasReturnWithNoExpression = functionHasImplicitReturn(func);
         let hasReturnOfTypeNever = false;
+        let doTypePredCheck = false;
         forEachReturnStatement(func.body as Block, returnStatement => {
             let expr = returnStatement.expression;
             if (expr) {
@@ -37342,31 +37341,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 if (type.flags & TypeFlags.Never) {
                     hasReturnOfTypeNever = true;
                 }
-                if (type === booleanType && func.body) {
-                    for (const param of func.parameters) {
-                        const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
-                        if (!initType) {
-                            continue;
-                        }
-                        const trueCondition: FlowCondition = {
-                            // synthesized TrueCondition
-                            flags: FlowFlags.TrueCondition | FlowFlags.Referenced | FlowFlags.Shared,
-                            node: expr,
-                            antecedent: (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start },
-                        };
-                        // Find a reference to try refining; there must be a better way!
-                        const paramId = forEachChildRecursively(func.body, (node) => {
-                            if (isIdentifier(node) && getResolvedSymbol(node) === param.symbol) {
-                                return node;
-                            }
-                        });
-                        if (paramId) {
-                            const narrowedParamType = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
-                            if (narrowedParamType !== initType) {
-                                console.log('function narrows parameter ', (param.name as any).getText(), ' from', typeToString(initType), 'to', typeToString(narrowedParamType));
-                            }
-                        }
-                    }
+                if (type === booleanType) {
+                    doTypePredCheck = true;
                 }
                 pushIfUnique(aggregatedTypes, type);
             }
@@ -37384,6 +37360,10 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             // Javascript "callable constructors", containing eg `if (!(this instanceof A)) return new A()` should not add undefined
             pushIfUnique(aggregatedTypes, undefinedType);
         }
+        if (doTypePredCheck) {
+            const pred = getTypePredicateFromBody(func);
+            console.log(pred);
+        }
         return aggregatedTypes;
     }
     function mayReturnNever(func: FunctionLikeDeclaration): boolean {
@@ -37395,6 +37375,70 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 return func.parent.kind === SyntaxKind.ObjectLiteralExpression;
             default:
                 return false;
+        }
+    }
+
+    function getTypePredicateFromBody(func: FunctionLikeDeclaration): TypePredicate | undefined {
+        // XXX can we check for a resolved return type here?
+        const functionFlags = getFunctionFlags(func);
+        if (functionFlags !== FunctionFlags.Normal) {
+            return undefined;
+        }
+        let hasReturnWithNoExpression = functionHasImplicitReturn(func);
+        if (hasReturnWithNoExpression) {
+            return undefined;
+        }
+
+        let hasNonBooleanReturn = false;
+        const aggregatedPredicates: [number, Type][] = [];
+        forEachReturnStatement(func.body as Block, returnStatement => {
+            let expr = returnStatement.expression;
+            if (expr) {
+                expr = skipParentheses(expr, /*excludeJSDocTypeAssertions*/ true);
+                // TODO: can this be CheckMode.TypeOnly?
+                const type = checkExpressionCached(expr, CheckMode.Normal);
+                if (type === booleanType && func.body) {
+                    for (const [i, param] of func.parameters.entries()) {
+                        const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
+                        if (!initType) {
+                            continue;
+                        }
+                        // TODO: What if this is return false, though?
+                        const trueCondition: FlowCondition = {
+                            // synthesized TrueCondition
+                            flags: FlowFlags.TrueCondition | FlowFlags.Referenced | FlowFlags.Shared,
+                            node: expr,
+                            // FlowCondition requires an antecedent, so we synthesize one for one-liners.
+                            antecedent: (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start },
+                        };
+                        // Find a reference to try refining; there must be a better way!
+                        const paramId = forEachChildRecursively(func.body, (node) => {
+                            if (isIdentifier(node) && getResolvedSymbol(node) === param.symbol) {
+                                return node;
+                            }
+                        });
+                        if (paramId) {
+                            const narrowedParamType = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
+                            if (narrowedParamType !== initType) {
+                                console.log('function narrows parameter ', (param.name as any).getText(), ' from', typeToString(initType), 'to', typeToString(narrowedParamType));
+                                aggregatedPredicates.push([i, narrowedParamType]);
+                            }
+                        }
+                    }
+                } else {
+                    hasNonBooleanReturn = true;
+                }
+            } else {
+                hasReturnWithNoExpression = true;
+            }
+        });
+        if (!hasNonBooleanReturn && aggregatedPredicates.length === 1) {
+            const [i, type] = aggregatedPredicates[0];
+            const param = func.parameters[i];
+            if (param.name.kind === SyntaxKind.Identifier) {
+                // @ts-expect-error will deal with escaping issue later
+                return createTypePredicate(TypePredicateKind.Identifier, param.name.escapedText, i, type);
+            }
         }
     }
 
