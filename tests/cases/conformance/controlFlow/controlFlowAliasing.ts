@@ -1,15 +1,12 @@
 // @strict: true
 // @declaration: true
-// XXX
 
 // Narrowing by aliased conditional expressions
 
 function f10(x: string | number) {
-    const unrelated = Math.random() ? 1 : null;
     const isString = typeof x === "string";
     if (isString) {
         let t: string = x;
-        let t2 = unrelated;
     }
     else {
         let t: number = x;

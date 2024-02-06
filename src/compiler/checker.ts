@@ -37318,7 +37318,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         const aggregatedTypes: Type[] = [];
         let hasReturnWithNoExpression = functionHasImplicitReturn(func);
         let hasReturnOfTypeNever = false;
-        let doTypePredCheck = false;
         forEachReturnStatement(func.body as Block, returnStatement => {
             let expr = returnStatement.expression;
             if (expr) {
@@ -37347,9 +37346,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 }
                 if (type.flags & TypeFlags.Never) {
                     hasReturnOfTypeNever = true;
-                }
-                if (type === booleanType) {
-                    doTypePredCheck = true;
                 }
                 pushIfUnique(aggregatedTypes, type);
             }
