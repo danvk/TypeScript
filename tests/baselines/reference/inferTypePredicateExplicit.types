@@ -1,0 +1,23 @@
+//// [tests/cases/compiler/inferTypePredicateExplicit.ts] ////
+
+=== inferTypePredicateExplicit.ts ===
+function isNonNullExplicit(x: number | null) {
+>isNonNullExplicit : (x: number | null) => x is number
+>x : number | null
+
+  const ok = x !== null;
+>ok : boolean
+>x !== null : boolean
+>x : number | null
+
+  if (ok) {
+>ok : boolean
+
+    let t: number = x;
+>t : number
+>x : number
+  }
+  return ok;
+>ok : boolean
+}
+

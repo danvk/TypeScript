@@ -1,0 +1,25 @@
+//// [tests/cases/compiler/inferTypePredicateSuperImplicit.ts] ////
+
+=== inferTypePredicateSuperImplicit.ts ===
+function isNonNull(x: number | null) {
+>isNonNull : (x: number | null) => x is number
+>x : number | null
+
+  return x !== null;
+>x !== null : boolean
+>x : number | null
+}
+
+declare let tNN: number | null;
+>tNN : number | null
+
+if (isNonNull(tNN)) {
+>isNonNull(tNN) : boolean
+>isNonNull : (x: number | null) => x is number
+>tNN : number | null
+
+  let t: number = tNN;
+>t : number
+>tNN : number
+}
+

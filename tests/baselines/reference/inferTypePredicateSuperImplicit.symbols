@@ -1,0 +1,23 @@
+//// [tests/cases/compiler/inferTypePredicateSuperImplicit.ts] ////
+
+=== inferTypePredicateSuperImplicit.ts ===
+function isNonNull(x: number | null) {
+>isNonNull : Symbol(isNonNull, Decl(inferTypePredicateSuperImplicit.ts, 0, 0))
+>x : Symbol(x, Decl(inferTypePredicateSuperImplicit.ts, 0, 19))
+
+  return x !== null;
+>x : Symbol(x, Decl(inferTypePredicateSuperImplicit.ts, 0, 19))
+}
+
+declare let tNN: number | null;
+>tNN : Symbol(tNN, Decl(inferTypePredicateSuperImplicit.ts, 4, 11))
+
+if (isNonNull(tNN)) {
+>isNonNull : Symbol(isNonNull, Decl(inferTypePredicateSuperImplicit.ts, 0, 0))
+>tNN : Symbol(tNN, Decl(inferTypePredicateSuperImplicit.ts, 4, 11))
+
+  let t: number = tNN;
+>t : Symbol(t, Decl(inferTypePredicateSuperImplicit.ts, 6, 5))
+>tNN : Symbol(tNN, Decl(inferTypePredicateSuperImplicit.ts, 4, 11))
+}
+
