@@ -37393,7 +37393,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         let hasNonBooleanReturn = false;
         let hasNonNarrowingReturn = false;
         const aggregatedPredicates: [number, Type][] = [];
-        forEachReturnStatement(func.body as Block, returnStatement => {
+        const bailedEarly = forEachReturnStatement(func.body as Block, returnStatement => {
             if (hasNonBooleanReturn || hasNonNarrowingReturn) {
                 return;
             }
@@ -37419,7 +37419,9 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         };
                         // Find a reference to try refining; there must be a better way!
                         const paramId = forEachChildRecursively(func.body, (node) => {
-                            if (isIdentifier(node) && getResolvedSymbol(node) === param.symbol) {
+                            // XXX could I do node.symbol === param.symbol here?
+                            // resolving identifier "foo" if it's part of "this.foo" will cause an error here.
+                            if (isIdentifier(node) && !isPropertyAccessExpression(node.parent) && getResolvedSymbol(node) === param.symbol) {
                                 return node;
                             }
                         });
@@ -37430,17 +37432,20 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                                 aggregatedPredicates.push([i, narrowedParamType]);
                             } else {
                                 hasNonNarrowingReturn = true;
+                                return true;
                             }
                         }
                     }
                 } else {
                     hasNonBooleanReturn = true;
+                    return true;
                 }
             } else {
                 hasReturnWithNoExpression = true;
+                return true;
             }
         });
-        if (!hasNonBooleanReturn && !hasNonNarrowingReturn && aggregatedPredicates.length === 1) {
+        if (!hasNonBooleanReturn && !hasNonNarrowingReturn && !bailedEarly && aggregatedPredicates.length === 1) {
             const [i, type] = aggregatedPredicates[0];
             const param = func.parameters[i];
             if (param.name.kind === SyntaxKind.Identifier) {
