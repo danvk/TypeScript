@@ -15446,7 +15446,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 } else if (signature.declaration && isFunctionLikeDeclaration(signature.declaration) && (!signature.resolvedReturnType || signature.resolvedReturnType === booleanType)) {
                     const {declaration} = signature;
                     signature.resolvedTypePredicate = noTypePredicate;  // avoid infinite loop
-                    signature.resolvedTypePredicate = getTypePredicateFromBody(declaration) || noTypePredicate;
+                    signature.resolvedTypePredicate = getTypePredicateFromBody(declaration, signature) || noTypePredicate;
                 } else {
                     signature.resolvedTypePredicate = noTypePredicate;
                 }
@@ -37378,7 +37378,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
     }
 
-    function getTypePredicateFromBody(func: FunctionLikeDeclaration): TypePredicate | undefined {
+    function getTypePredicateFromBody(func: FunctionLikeDeclaration, sig: Signature): TypePredicate | undefined {
         // XXX can we check for a resolved return type here?
         const functionFlags = getFunctionFlags(func);
         if (functionFlags !== FunctionFlags.Normal) {
@@ -37435,6 +37435,20 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             if (type === booleanType && func.body) {
                 for (const [i, param] of func.parameters.entries()) {
                     const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
+                    if (!initType) {
+                        if (isContextSensitive(func as ArrowFunction)) {
+                            const inferenceContext = getInferenceContext(func);
+                            const contextualSignature = getContextualSignature(func as ArrowFunction);
+                            if (inferenceContext && contextualSignature) {
+                                const instantiatedContextualSignature = instantiateSignature(contextualSignature, inferenceContext.mapper)
+                                assignContextualParameterTypes(sig, instantiatedContextualSignature);
+                                console.log(inferenceContext);
+                            }
+                        }
+                        // what is the difference between a declaration and a signature?
+                        // assignContextualParameterTypes(sig, context)
+                        // console.log('contextual sig', sig);
+                    }
                     if (!initType || initType === booleanType) {
                         // Debateable: refining "x: boolean" to "x is true" isn't useful.
                         continue;
