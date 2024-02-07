@@ -37401,7 +37401,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 if (type === booleanType && func.body) {
                     for (const [i, param] of func.parameters.entries()) {
                         const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
-                        if (!initType) {
+                        if (!initType || initType === booleanType) {
+                            // Debateable: refining "x: boolean" to "x is true" isn't useful.
                             continue;
                         }
                         // TODO: What if this is return false, though?
