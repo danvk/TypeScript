@@ -37385,72 +37385,91 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             return undefined;
         }
 
-        let hasReturnWithNoExpression = functionHasImplicitReturn(func);
-        if (hasReturnWithNoExpression) {
-            return undefined;
-        }
-
         let hasNonBooleanReturn = false;
         let hasNonNarrowingReturn = false;
         const aggregatedPredicates: [number, Type][] = [];
-        const bailedEarly = forEachReturnStatement(func.body as Block, returnStatement => {
-            if (hasNonBooleanReturn || hasNonNarrowingReturn) {
+
+        if (func.body && func.body.kind !== SyntaxKind.Block) { // arrow function
+            const bailedEarly = checkIfExpressionRefinesParams(func.body);
+            if (bailedEarly) {
                 return;
             }
-            let expr = returnStatement.expression;
-            if (expr) {
-                expr = skipParentheses(expr, /*excludeJSDocTypeAssertions*/ true);
-                // TODO: can this be CheckMode.TypeOnly?
-                const type = checkExpressionCached(expr, CheckMode.Normal);
-                if (type === booleanType && func.body) {
-                    for (const [i, param] of func.parameters.entries()) {
-                        const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
-                        if (!initType || initType === booleanType) {
-                            // Debateable: refining "x: boolean" to "x is true" isn't useful.
-                            continue;
-                        }
-                        // TODO: What if this is return false, though?
-                        const trueCondition: FlowCondition = {
-                            // synthesized TrueCondition
-                            flags: FlowFlags.TrueCondition | FlowFlags.Referenced | FlowFlags.Shared,
-                            node: expr,
-                            // FlowCondition requires an antecedent, so we synthesize one for one-liners.
-                            antecedent: (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start },
-                        };
-                        // Find a reference to try refining; there must be a better way!
-                        const paramId = forEachChildRecursively(func.body, (node) => {
-                            // XXX could I do node.symbol === param.symbol here?
-                            // resolving identifier "foo" if it's part of "this.foo" will cause an error here.
-                            if (isIdentifier(node) && !isPropertyAccessExpression(node.parent) && getResolvedSymbol(node) === param.symbol) {
-                                return node;
-                            }
-                        });
-                        if (paramId) {
-                            const narrowedParamType = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
-                            if (narrowedParamType !== initType) {
-                                // console.log('function narrows parameter ', (param.name as any).getText(), ' from', typeToString(initType), 'to', typeToString(narrowedParamType));
-                                aggregatedPredicates.push([i, narrowedParamType]);
-                            } else {
-                                hasNonNarrowingReturn = true;
-                                return true;
-                            }
-                        }
-                    }
+        } else {
+            let hasReturnWithNoExpression = functionHasImplicitReturn(func);
+            if (hasReturnWithNoExpression) {
+                return;
+            }
+
+            const bailedEarly = forEachReturnStatement(func.body as Block, returnStatement => {
+                if (hasNonBooleanReturn || hasNonNarrowingReturn) {
+                    return;
+                }
+                const expr = returnStatement.expression;
+                if (expr) {
+                    return checkIfExpressionRefinesParams(expr);
                 } else {
-                    hasNonBooleanReturn = true;
+                    hasReturnWithNoExpression = true;
                     return true;
                 }
-            } else {
-                hasReturnWithNoExpression = true;
-                return true;
+            });
+            if (bailedEarly) {
+                return;
             }
-        });
-        if (!hasNonBooleanReturn && !hasNonNarrowingReturn && !bailedEarly && aggregatedPredicates.length === 1) {
+        }
+
+
+        if (!hasNonBooleanReturn && !hasNonNarrowingReturn && aggregatedPredicates.length === 1) {
             const [i, type] = aggregatedPredicates[0];
             const param = func.parameters[i];
             if (param.name.kind === SyntaxKind.Identifier) {
                 // @ts-expect-error will deal with escaping issue later
                 return createTypePredicate(TypePredicateKind.Identifier, param.name.escapedText, i, type);
+            }
+        }
+        return;
+
+        function checkIfExpressionRefinesParams(expr: Expression) {
+            expr = skipParentheses(expr, /*excludeJSDocTypeAssertions*/ true);
+            // TODO: can this be CheckMode.TypeOnly?
+            const type = checkExpressionCached(expr, CheckMode.Normal);
+            if (type === booleanType && func.body) {
+                for (const [i, param] of func.parameters.entries()) {
+                    const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
+                    if (!initType || initType === booleanType) {
+                        // Debateable: refining "x: boolean" to "x is true" isn't useful.
+                        continue;
+                    }
+                    // TODO: What if this is return false, though?
+                    const trueCondition: FlowCondition = {
+                        // synthesized TrueCondition
+                        flags: FlowFlags.TrueCondition | FlowFlags.Referenced | FlowFlags.Shared,
+                        node: expr,
+                        // FlowCondition requires an antecedent, so we synthesize one for one-liners.
+                        antecedent: (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start },
+                    };
+                    // TODO: do this once per function, not once per return statement.
+                    // Find a reference to try refining; there must be a better way!
+                    const paramId = forEachChildRecursively(func.body, (node) => {
+                        // XXX could I do node.symbol === param.symbol here?
+                        // resolving identifier "foo" if it's part of "this.foo" will cause an error here.
+                        if (isIdentifier(node) && !isPropertyAccessExpression(node.parent) && getResolvedSymbol(node) === param.symbol) {
+                            return node;
+                        }
+                    });
+                    if (paramId) {
+                        const narrowedParamType = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
+                        if (narrowedParamType !== initType) {
+                            // console.log('function narrows parameter ', (param.name as any).getText(), ' from', typeToString(initType), 'to', typeToString(narrowedParamType));
+                            aggregatedPredicates.push([i, narrowedParamType]);
+                        } else {
+                            hasNonNarrowingReturn = true;
+                            return true;
+                        }
+                    }
+                }
+            } else {
+                hasNonBooleanReturn = true;
+                return true;
             }
         }
     }
