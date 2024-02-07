@@ -37391,8 +37391,12 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
 
         let hasNonBooleanReturn = false;
+        let hasNonNarrowingReturn = false;
         const aggregatedPredicates: [number, Type][] = [];
         forEachReturnStatement(func.body as Block, returnStatement => {
+            if (hasNonBooleanReturn || hasNonNarrowingReturn) {
+                return;
+            }
             let expr = returnStatement.expression;
             if (expr) {
                 expr = skipParentheses(expr, /*excludeJSDocTypeAssertions*/ true);
@@ -37424,6 +37428,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                             if (narrowedParamType !== initType) {
                                 // console.log('function narrows parameter ', (param.name as any).getText(), ' from', typeToString(initType), 'to', typeToString(narrowedParamType));
                                 aggregatedPredicates.push([i, narrowedParamType]);
+                            } else {
+                                hasNonNarrowingReturn = true;
                             }
                         }
                     }
@@ -37434,7 +37440,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 hasReturnWithNoExpression = true;
             }
         });
-        if (!hasNonBooleanReturn && aggregatedPredicates.length === 1) {
+        if (!hasNonBooleanReturn && !hasNonNarrowingReturn && aggregatedPredicates.length === 1) {
             const [i, type] = aggregatedPredicates[0];
             const param = func.parameters[i];
             if (param.name.kind === SyntaxKind.Identifier) {
