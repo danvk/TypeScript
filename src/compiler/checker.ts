@@ -15445,6 +15445,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         jsdocPredicate || noTypePredicate;
                 } else if (signature.declaration && isFunctionLikeDeclaration(signature.declaration) && (!signature.resolvedReturnType || signature.resolvedReturnType === booleanType)) {
                     const {declaration} = signature;
+                    signature.resolvedTypePredicate = noTypePredicate;  // avoid infinite loop
                     signature.resolvedTypePredicate = getTypePredicateFromBody(declaration) || noTypePredicate;
                 } else {
                     signature.resolvedTypePredicate = noTypePredicate;
@@ -37383,6 +37384,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         if (functionFlags !== FunctionFlags.Normal) {
             return undefined;
         }
+
         let hasReturnWithNoExpression = functionHasImplicitReturn(func);
         if (hasReturnWithNoExpression) {
             return undefined;
