@@ -37378,7 +37378,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
     }
 
-    function getTypePredicateFromBody(func: FunctionLikeDeclaration, sig: Signature): TypePredicate | undefined {
+    function getTypePredicateFromBody(func: FunctionLikeDeclaration, _sig: Signature): TypePredicate | undefined {
         // XXX can we check for a resolved return type here?
         const functionFlags = getFunctionFlags(func);
         if (functionFlags !== FunctionFlags.Normal) {
@@ -37436,15 +37436,15 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 for (const [i, param] of func.parameters.entries()) {
                     const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
                     if (!initType) {
-                        if (isContextSensitive(func as ArrowFunction)) {
-                            const inferenceContext = getInferenceContext(func);
-                            const contextualSignature = getContextualSignature(func as ArrowFunction);
-                            if (inferenceContext && contextualSignature) {
-                                const instantiatedContextualSignature = instantiateSignature(contextualSignature, inferenceContext.mapper)
-                                assignContextualParameterTypes(sig, instantiatedContextualSignature);
-                                console.log(inferenceContext);
-                            }
-                        }
+                        // if (isContextSensitive(func as ArrowFunction)) {
+                        //     const inferenceContext = getInferenceContext(func);
+                        //     const contextualSignature = getContextualSignature(func as ArrowFunction);
+                        //     if (inferenceContext && contextualSignature) {
+                        //         const instantiatedContextualSignature = instantiateSignature(contextualSignature, inferenceContext.mapper)
+                        //         assignContextualParameterTypes(sig, instantiatedContextualSignature);
+                        //         console.log(inferenceContext);
+                        //     }
+                        // }
                         // what is the difference between a declaration and a signature?
                         // assignContextualParameterTypes(sig, context)
                         // console.log('contextual sig', sig);
