@@ -37431,14 +37431,26 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         function checkIfExpressionRefinesParams(expr: Expression) {
             expr = skipParentheses(expr, /*excludeJSDocTypeAssertions*/ true);
             // TODO: can this be CheckMode.TypeOnly?
-            const type = checkExpressionCached(expr, CheckMode.Normal);
+            const type = checkExpressionCached(expr, CheckMode.Contextual);
             if (type === booleanType && func.body) {
                 for (const [i, param] of func.parameters.entries()) {
                     const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
                     if (!initType) {
+                        const paramId = forEachChildRecursively(func.body, (node) => {
+                            // XXX could I do node.symbol === param.symbol here?
+                            // resolving identifier "foo" if it's part of "this.foo" will cause an error here.
+                            if (isIdentifier(node) && !isPropertyAccessExpression(node.parent) && getResolvedSymbol(node) === param.symbol) {
+                                return node;
+                            }
+                        });
+                        if (paramId) {
+                            const nt = getNarrowedTypeOfSymbol(param.symbol, paramId);
+                            console.log(nt);
+                        }
                         // if (isContextSensitive(func as ArrowFunction)) {
-                        //     const inferenceContext = getInferenceContext(func);
-                        //     const contextualSignature = getContextualSignature(func as ArrowFunction);
+                        // const inferenceContext = getInferenceContext(func);
+                        // const contextualSignature = getContextualSignature(func as ArrowFunction);
+                        // console.log(inferenceContext, contextualSignature);
                         //     if (inferenceContext && contextualSignature) {
                         //         const instantiatedContextualSignature = instantiateSignature(contextualSignature, inferenceContext.mapper)
                         //         assignContextualParameterTypes(sig, instantiatedContextualSignature);
@@ -37453,7 +37465,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         // Debateable: refining "x: boolean" to "x is true" isn't useful.
                         continue;
                     }
-                    // TODO: What if this is return false, though?
                     const trueCondition: FlowCondition = {
                         // synthesized TrueCondition
                         flags: FlowFlags.TrueCondition | FlowFlags.Referenced | FlowFlags.Shared,
@@ -37461,6 +37472,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         // FlowCondition requires an antecedent, so we synthesize one for one-liners.
                         antecedent: (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start },
                     };
+                    // TODO: Also need to run falseCondition to check for disjointness.
+
                     // TODO: do this once per function, not once per return statement.
                     // Find a reference to try refining; there must be a better way!
                     const paramId = forEachChildRecursively(func.body, (node) => {
