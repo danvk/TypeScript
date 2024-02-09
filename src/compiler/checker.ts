@@ -37434,8 +37434,10 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             const type = checkExpressionCached(expr, CheckMode.Contextual);
             if (type === booleanType && func.body) {
                 for (const [i, param] of func.parameters.entries()) {
-                    const initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
+                    let initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
                     if (!initType) {
+                        // This branch is for parameters that only have a contextual type.
+                        // If so, we try a little harder to figure out their type.
                         const paramId = forEachChildRecursively(func.body, (node) => {
                             // XXX could I do node.symbol === param.symbol here?
                             // resolving identifier "foo" if it's part of "this.foo" will cause an error here.
@@ -37444,22 +37446,10 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                             }
                         });
                         if (paramId) {
-                            const nt = getNarrowedTypeOfSymbol(param.symbol, paramId);
-                            console.log(nt);
+                            // It would be really nice to get the type of the parameter in the parameter
+                            // list, not at the first usage. But getNarrowedTypeOfSymbol wants an Identifier.
+                            initType = getNarrowedTypeOfSymbol(param.symbol, paramId);
                         }
-                        // if (isContextSensitive(func as ArrowFunction)) {
-                        // const inferenceContext = getInferenceContext(func);
-                        // const contextualSignature = getContextualSignature(func as ArrowFunction);
-                        // console.log(inferenceContext, contextualSignature);
-                        //     if (inferenceContext && contextualSignature) {
-                        //         const instantiatedContextualSignature = instantiateSignature(contextualSignature, inferenceContext.mapper)
-                        //         assignContextualParameterTypes(sig, instantiatedContextualSignature);
-                        //         console.log(inferenceContext);
-                        //     }
-                        // }
-                        // what is the difference between a declaration and a signature?
-                        // assignContextualParameterTypes(sig, context)
-                        // console.log('contextual sig', sig);
                     }
                     if (!initType || initType === booleanType) {
                         // Debateable: refining "x: boolean" to "x is true" isn't useful.
