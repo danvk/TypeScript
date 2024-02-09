@@ -37448,6 +37448,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         if (paramId) {
                             // It would be really nice to get the type of the parameter in the parameter
                             // list, not at the first usage. But getNarrowedTypeOfSymbol wants an Identifier.
+                            // If the first use is in a narrowed context, this may be incorrect.
                             initType = getNarrowedTypeOfSymbol(param.symbol, paramId);
                         }
                     }
