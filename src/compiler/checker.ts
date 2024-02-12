@@ -37438,13 +37438,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     if (!initType) {
                         // This branch is for parameters that only have a contextual type.
                         // If so, we try a little harder to figure out their type.
-                        const paramId = forEachChildRecursively(func.body, (node) => {
-                            // XXX could I do node.symbol === param.symbol here?
-                            // resolving identifier "foo" if it's part of "this.foo" will cause an error here.
-                            if (isIdentifier(node) && !isPropertyAccessExpression(node.parent) && getResolvedSymbol(node) === param.symbol) {
-                                return node;
-                            }
-                        });
+                        const paramId = getIdentifierForParam(param);
                         if (paramId) {
                             // It would be really nice to get the type of the parameter in the parameter
                             // list, not at the first usage. But getNarrowedTypeOfSymbol wants an Identifier.
@@ -37466,14 +37460,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     // TODO: Also need to run falseCondition to check for disjointness.
 
                     // TODO: do this once per function, not once per return statement.
-                    // Find a reference to try refining; there must be a better way!
-                    const paramId = forEachChildRecursively(func.body, (node) => {
-                        // XXX could I do node.symbol === param.symbol here?
-                        // resolving identifier "foo" if it's part of "this.foo" will cause an error here.
-                        if (isIdentifier(node) && !isPropertyAccessExpression(node.parent) && getResolvedSymbol(node) === param.symbol) {
-                            return node;
-                        }
-                    });
+                    const paramId = getIdentifierForParam(param);
                     if (paramId) {
                         const narrowedParamType = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
                         if (narrowedParamType !== initType) {
@@ -37489,6 +37476,18 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 hasNonBooleanReturn = true;
                 return true;
             }
+        }
+
+        // TODO: look into whether I can synthesize an Identifier for the param
+        // Find a reference to try refining; there must be a better way!
+        function getIdentifierForParam(param: ParameterDeclaration): Identifier | undefined {
+            return func.body && forEachChildRecursively(func.body, (node) => {
+                // XXX could I do node.symbol === param.symbol here?
+                // resolving identifier "foo" if it's part of "this.foo" will cause an error here.
+                if (isIdentifier(node) && !isPropertyAccessExpression(node.parent) && getResolvedSymbol(node) === param.symbol) {
+                    return node;
+                }
+            });
         }
     }
 
