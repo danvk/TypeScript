@@ -267,3 +267,99 @@ function backwardsGuard(x: number|string): x is number {
 >'string' : "string"
 }
 
+// Partition tests. The "false" case matters.
+declare function partition<T, R extends T>(
+>partition : <T, R extends T>(els: T[], pred: (x: T) => x is R) => [R[], Exclude<T, R>[]]
+
+  els: T[], pred: (x: T) => x is R
+>els : T[]
+>pred : (x: T) => x is R
+>x : T
+
+): [R[], Exclude<T, R>[]];
+
+function isString(x: string | number) {
+>isString : (x: string | number) => x is string
+>x : string | number
+
+  return typeof x === 'string';
+>typeof x === 'string' : boolean
+>typeof x : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
+>x : string | number
+>'string' : "string"
+}
+
+declare let strsOrNums: (string|number)[];
+>strsOrNums : (string | number)[]
+
+const [strs1, nums1] = partition(strsOrNums, isString); // nums1 should be number[]
+>strs1 : string[]
+>nums1 : number[]
+>partition(strsOrNums, isString) : [string[], number[]]
+>partition : <T, R extends T>(els: T[], pred: (x: T) => x is R) => [R[], Exclude<T, R>[]]
+>strsOrNums : (string | number)[]
+>isString : (x: string | number) => x is string
+
+function flakyIsString(x: string | number) {
+>flakyIsString : (x: string | number) => x is string
+>x : string | number
+
+  return typeof x === 'string' && Math.random() > 0.5;
+>typeof x === 'string' && Math.random() > 0.5 : boolean
+>typeof x === 'string' : boolean
+>typeof x : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
+>x : string | number
+>'string' : "string"
+>Math.random() > 0.5 : boolean
+>Math.random() : number
+>Math.random : () => number
+>Math : Math
+>random : () => number
+>0.5 : 0.5
+}
+const [strs2, nums2] = partition(strsOrNums, flakyIsString); // nums2 should be (string|number)[]
+>strs2 : string[]
+>nums2 : number[]
+>partition(strsOrNums, flakyIsString) : [string[], number[]]
+>partition : <T, R extends T>(els: T[], pred: (x: T) => x is R) => [R[], Exclude<T, R>[]]
+>strsOrNums : (string | number)[]
+>flakyIsString : (x: string | number) => x is string
+
+function isDate(x: object): x is Date {
+>isDate : (x: object) => x is Date
+>x : object
+
+  return x instanceof Date;
+>x instanceof Date : boolean
+>x : object
+>Date : DateConstructor
+}
+function flakyIsDate(x: object): x is Date {
+>flakyIsDate : (x: object) => x is Date
+>x : object
+
+  return x instanceof Date;
+>x instanceof Date : boolean
+>x : object
+>Date : DateConstructor
+}
+
+declare let maybeDates: object[];
+>maybeDates : object[]
+
+const [dates1, objs1] = partition(maybeDates, isDate); // should be [Date[], object[]]
+>dates1 : Date[]
+>objs1 : object[]
+>partition(maybeDates, isDate) : [Date[], object[]]
+>partition : <T, R extends T>(els: T[], pred: (x: T) => x is R) => [R[], Exclude<T, R>[]]
+>maybeDates : object[]
+>isDate : (x: object) => x is Date
+
+const [dates2, objs2] = partition(maybeDates, flakyIsDate); // should be [Date[], object[]]
+>dates2 : Date[]
+>objs2 : object[]
+>partition(maybeDates, flakyIsDate) : [Date[], object[]]
+>partition : <T, R extends T>(els: T[], pred: (x: T) => x is R) => [R[], Exclude<T, R>[]]
+>maybeDates : object[]
+>flakyIsDate : (x: object) => x is Date
+

@@ -192,3 +192,98 @@ function backwardsGuard(x: number|string): x is number {
 >x : Symbol(x, Decl(inferTypePredicateArrow.ts, 58, 24))
 }
 
+// Partition tests. The "false" case matters.
+declare function partition<T, R extends T>(
+>partition : Symbol(partition, Decl(inferTypePredicateArrow.ts, 60, 1))
+>T : Symbol(T, Decl(inferTypePredicateArrow.ts, 63, 27))
+>R : Symbol(R, Decl(inferTypePredicateArrow.ts, 63, 29))
+>T : Symbol(T, Decl(inferTypePredicateArrow.ts, 63, 27))
+
+  els: T[], pred: (x: T) => x is R
+>els : Symbol(els, Decl(inferTypePredicateArrow.ts, 63, 43))
+>T : Symbol(T, Decl(inferTypePredicateArrow.ts, 63, 27))
+>pred : Symbol(pred, Decl(inferTypePredicateArrow.ts, 64, 11))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 64, 19))
+>T : Symbol(T, Decl(inferTypePredicateArrow.ts, 63, 27))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 64, 19))
+>R : Symbol(R, Decl(inferTypePredicateArrow.ts, 63, 29))
+
+): [R[], Exclude<T, R>[]];
+>R : Symbol(R, Decl(inferTypePredicateArrow.ts, 63, 29))
+>Exclude : Symbol(Exclude, Decl(lib.es5.d.ts, --, --))
+>T : Symbol(T, Decl(inferTypePredicateArrow.ts, 63, 27))
+>R : Symbol(R, Decl(inferTypePredicateArrow.ts, 63, 29))
+
+function isString(x: string | number) {
+>isString : Symbol(isString, Decl(inferTypePredicateArrow.ts, 65, 26))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 67, 18))
+
+  return typeof x === 'string';
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 67, 18))
+}
+
+declare let strsOrNums: (string|number)[];
+>strsOrNums : Symbol(strsOrNums, Decl(inferTypePredicateArrow.ts, 71, 11))
+
+const [strs1, nums1] = partition(strsOrNums, isString); // nums1 should be number[]
+>strs1 : Symbol(strs1, Decl(inferTypePredicateArrow.ts, 72, 7))
+>nums1 : Symbol(nums1, Decl(inferTypePredicateArrow.ts, 72, 13))
+>partition : Symbol(partition, Decl(inferTypePredicateArrow.ts, 60, 1))
+>strsOrNums : Symbol(strsOrNums, Decl(inferTypePredicateArrow.ts, 71, 11))
+>isString : Symbol(isString, Decl(inferTypePredicateArrow.ts, 65, 26))
+
+function flakyIsString(x: string | number) {
+>flakyIsString : Symbol(flakyIsString, Decl(inferTypePredicateArrow.ts, 72, 55))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 74, 23))
+
+  return typeof x === 'string' && Math.random() > 0.5;
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 74, 23))
+>Math.random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+>Math : Symbol(Math, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+}
+const [strs2, nums2] = partition(strsOrNums, flakyIsString); // nums2 should be (string|number)[]
+>strs2 : Symbol(strs2, Decl(inferTypePredicateArrow.ts, 77, 7))
+>nums2 : Symbol(nums2, Decl(inferTypePredicateArrow.ts, 77, 13))
+>partition : Symbol(partition, Decl(inferTypePredicateArrow.ts, 60, 1))
+>strsOrNums : Symbol(strsOrNums, Decl(inferTypePredicateArrow.ts, 71, 11))
+>flakyIsString : Symbol(flakyIsString, Decl(inferTypePredicateArrow.ts, 72, 55))
+
+function isDate(x: object): x is Date {
+>isDate : Symbol(isDate, Decl(inferTypePredicateArrow.ts, 77, 60))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 79, 16))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 79, 16))
+>Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --))
+
+  return x instanceof Date;
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 79, 16))
+>Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --))
+}
+function flakyIsDate(x: object): x is Date {
+>flakyIsDate : Symbol(flakyIsDate, Decl(inferTypePredicateArrow.ts, 81, 1))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 82, 21))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 82, 21))
+>Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --))
+
+  return x instanceof Date;
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 82, 21))
+>Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --))
+}
+
+declare let maybeDates: object[];
+>maybeDates : Symbol(maybeDates, Decl(inferTypePredicateArrow.ts, 86, 11))
+
+const [dates1, objs1] = partition(maybeDates, isDate); // should be [Date[], object[]]
+>dates1 : Symbol(dates1, Decl(inferTypePredicateArrow.ts, 87, 7))
+>objs1 : Symbol(objs1, Decl(inferTypePredicateArrow.ts, 87, 14))
+>partition : Symbol(partition, Decl(inferTypePredicateArrow.ts, 60, 1))
+>maybeDates : Symbol(maybeDates, Decl(inferTypePredicateArrow.ts, 86, 11))
+>isDate : Symbol(isDate, Decl(inferTypePredicateArrow.ts, 77, 60))
+
+const [dates2, objs2] = partition(maybeDates, flakyIsDate); // should be [Date[], object[]]
+>dates2 : Symbol(dates2, Decl(inferTypePredicateArrow.ts, 88, 7))
+>objs2 : Symbol(objs2, Decl(inferTypePredicateArrow.ts, 88, 14))
+>partition : Symbol(partition, Decl(inferTypePredicateArrow.ts, 60, 1))
+>maybeDates : Symbol(maybeDates, Decl(inferTypePredicateArrow.ts, 86, 11))
+>flakyIsDate : Symbol(flakyIsDate, Decl(inferTypePredicateArrow.ts, 81, 1))
+

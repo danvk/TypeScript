@@ -63,6 +63,34 @@ function backwardsGuard(x: number|string): x is number {
   return typeof x === 'string';
 }
 
+// Partition tests. The "false" case matters.
+declare function partition<T, R extends T>(
+  els: T[], pred: (x: T) => x is R
+): [R[], Exclude<T, R>[]];
+
+function isString(x: string | number) {
+  return typeof x === 'string';
+}
+
+declare let strsOrNums: (string|number)[];
+const [strs1, nums1] = partition(strsOrNums, isString); // nums1 should be number[]
+
+function flakyIsString(x: string | number) {
+  return typeof x === 'string' && Math.random() > 0.5;
+}
+const [strs2, nums2] = partition(strsOrNums, flakyIsString); // nums2 should be (string|number)[]
+
+function isDate(x: object): x is Date {
+  return x instanceof Date;
+}
+function flakyIsDate(x: object): x is Date {
+  return x instanceof Date;
+}
+
+declare let maybeDates: object[];
+const [dates1, objs1] = partition(maybeDates, isDate); // should be [Date[], object[]]
+const [dates2, objs2] = partition(maybeDates, flakyIsDate); // should be [Date[], object[]]
+
 
 //// [inferTypePredicateArrow.js]
 // https://github.com/microsoft/TypeScript/issues/16069
@@ -101,3 +129,19 @@ a.push(10);
 function backwardsGuard(x) {
     return typeof x === 'string';
 }
+function isString(x) {
+    return typeof x === 'string';
+}
+var _a = partition(strsOrNums, isString), strs1 = _a[0], nums1 = _a[1]; // nums1 should be number[]
+function flakyIsString(x) {
+    return typeof x === 'string' && Math.random() > 0.5;
+}
+var _b = partition(strsOrNums, flakyIsString), strs2 = _b[0], nums2 = _b[1]; // nums2 should be (string|number)[]
+function isDate(x) {
+    return x instanceof Date;
+}
+function flakyIsDate(x) {
+    return x instanceof Date;
+}
+var _c = partition(maybeDates, isDate), dates1 = _c[0], objs1 = _c[1]; // should be [Date[], object[]]
+var _d = partition(maybeDates, flakyIsDate), dates2 = _d[0], objs2 = _d[1]; // should be [Date[], object[]]
