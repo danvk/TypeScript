@@ -37450,22 +37450,35 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         // Debateable: refining "x: boolean" to "x is true" isn't useful.
                         continue;
                     }
+                    // FlowCondition requires an antecedent, so we synthesize one for one-liners.
+                    const antecedent = (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start };
                     const trueCondition: FlowCondition = {
                         // synthesized TrueCondition
                         flags: FlowFlags.TrueCondition | FlowFlags.Referenced | FlowFlags.Shared,
                         node: expr,
-                        // FlowCondition requires an antecedent, so we synthesize one for one-liners.
-                        antecedent: (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start },
+                        antecedent,
                     };
-                    // TODO: Also need to run falseCondition to check for disjointness.
 
                     // TODO: do this once per function, not once per return statement.
                     const paramId = getIdentifierForParam(param);
                     if (paramId) {
-                        const narrowedParamType = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
-                        if (narrowedParamType !== initType) {
-                            // console.log('function narrows parameter ', (param.name as any).getText(), ' from', typeToString(initType), 'to', typeToString(narrowedParamType));
-                            aggregatedPredicates.push([i, narrowedParamType]);
+                        const narrowedParamTypeTrue = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
+                        if (narrowedParamTypeTrue !== initType) {
+                            // The semantics of "x is T" are that x is T if and only if it returns true.
+                            // In other words, if it returns false then x is not T.
+                            // However, TS may not be able to represent "not T", in which case we can be more lax.
+                            const falseCondition: FlowCondition = {
+                                flags: FlowFlags.FalseCondition | FlowFlags.Referenced | FlowFlags.Shared,
+                                node: expr,
+                                antecedent,
+                            }
+                            const narrowedParamTypeFalse = getFlowTypeOfReference(paramId, initType, initType, func, falseCondition);
+                            // It's safe to infer a type guard if:
+                            // narrowedParamTypeFalse = Exclude<initType, narrowedParamTypeTrue>
+                            // checkTypeRelatedTo
+                            // isRelatedTo
+                            console.log(narrowedParamTypeFalse);
+                            aggregatedPredicates.push([i, narrowedParamTypeTrue]);
                         } else {
                             hasNonNarrowingReturn = true;
                             return true;

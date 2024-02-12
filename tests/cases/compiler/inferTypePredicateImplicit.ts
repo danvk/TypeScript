@@ -14,3 +14,11 @@ if (isNonNull(tNN)) {
 function flakyIsString(x: string | number) {
   return typeof x === 'string' && Math.random() > 0.5;
 }
+
+function isNonNullExplicit(x: number | null) {
+  const ok = x !== null;
+  if (ok) {
+    let t: number = x;
+  }
+  return ok;
+}
