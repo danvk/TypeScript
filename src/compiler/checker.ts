@@ -37477,8 +37477,21 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                             // narrowedParamTypeFalse = Exclude<initType, narrowedParamTypeTrue>
                             // checkTypeRelatedTo
                             // isRelatedTo
-                            console.log(narrowedParamTypeFalse);
-                            aggregatedPredicates.push([i, narrowedParamTypeTrue]);
+                            // mapType
+                            // filterType
+                            // removeType
+                            // isTypeSubsetOf
+                            // isTypeSubsetOfUnion
+                            // what's the difference between a subtype and assignable relationship?
+                            // I think I want:
+                            // candidateFalse = filterType(initType, t => isTypeSubtypeOf(t, narrowedTypeParamTrue))
+                            // isTypeIdenticalTo(candidateFalse, narrowedParamTypeFalse)
+                            const candidateFalse = filterType(initType, t => !isTypeSubtypeOf(t, narrowedParamTypeTrue));
+                            const canInferGuard = isTypeIdenticalTo(candidateFalse, narrowedParamTypeFalse);
+                            // console.log(canInferGuard);
+                            if (canInferGuard) {
+                                aggregatedPredicates.push([i, narrowedParamTypeTrue]);
+                            }
                         } else {
                             hasNonNarrowingReturn = true;
                             return true;
