@@ -47,5 +47,16 @@ type Bar = Foo & {
 }
 
 const list: (Foo | Bar)[] = [];
-const result = list.filter((value) => 'bar' in value);
+const resultBar = list.filter((value) => 'bar' in value);
 // result type should be `Bar[]`
+
+// https://github.com/microsoft/TypeScript/issues/38390#issuecomment-626019466
+// Ryan's example:
+const a = [1, "foo", 2, "bar"].filter(x => typeof x === "string");
+// Currently legal
+a.push(10);
+
+// Defer to explicit type guards, even when they're incorrect.
+function backwardsGuard(x: number|string): x is number {
+  return typeof x === 'string';
+}
