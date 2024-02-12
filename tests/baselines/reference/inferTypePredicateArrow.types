@@ -12,12 +12,12 @@ const numsOrNull = [1, 2, 3, 4, null];
 >4 : 4
 
 const filteredNums = numsOrNull.filter(x => !!x);
->filteredNums : number[]
->numsOrNull.filter(x => !!x) : number[]
+>filteredNums : (number | null)[]
+>numsOrNull.filter(x => !!x) : (number | null)[]
 >numsOrNull.filter : { <S extends number | null>(predicate: (value: number | null, index: number, array: (number | null)[]) => value is S, thisArg?: any): S[]; (predicate: (value: number | null, index: number, array: (number | null)[]) => unknown, thisArg?: any): (number | null)[]; }
 >numsOrNull : (number | null)[]
 >filter : { <S extends number | null>(predicate: (value: number | null, index: number, array: (number | null)[]) => value is S, thisArg?: any): S[]; (predicate: (value: number | null, index: number, array: (number | null)[]) => unknown, thisArg?: any): (number | null)[]; }
->x => !!x : (x: number | null) => x is number
+>x => !!x : (x: number | null) => boolean
 >x : number | null
 >!!x : boolean
 >!x : boolean
@@ -27,7 +27,7 @@ const evenSquaresInline: number[] =
 >evenSquaresInline : number[]
 
     [1, 2, 3, 4]
->[1, 2, 3, 4]        .map(x => x % 2 === 0 ? x * x : null)        .filter(x => !!x) : number[]
+>[1, 2, 3, 4]        .map(x => x % 2 === 0 ? x * x : null)        .filter(x => !!x) : (number | null)[]
 >[1, 2, 3, 4]        .map(x => x % 2 === 0 ? x * x : null)        .filter : { <S extends number | null>(predicate: (value: number | null, index: number, array: (number | null)[]) => value is S, thisArg?: any): S[]; (predicate: (value: number | null, index: number, array: (number | null)[]) => unknown, thisArg?: any): (number | null)[]; }
 >[1, 2, 3, 4]        .map(x => x % 2 === 0 ? x * x : null) : (number | null)[]
 >[1, 2, 3, 4]        .map : <U>(callbackfn: (value: number, index: number, array: number[]) => U, thisArg?: any) => U[]
@@ -53,7 +53,7 @@ const evenSquaresInline: number[] =
 
         .filter(x => !!x);
 >filter : { <S extends number | null>(predicate: (value: number | null, index: number, array: (number | null)[]) => value is S, thisArg?: any): S[]; (predicate: (value: number | null, index: number, array: (number | null)[]) => unknown, thisArg?: any): (number | null)[]; }
->x => !!x : (x: number | null) => x is number
+>x => !!x : (x: number | null) => boolean
 >x : number | null
 >!!x : boolean
 >!x : boolean
@@ -61,8 +61,8 @@ const evenSquaresInline: number[] =
 
 // const isTruthy = (x: number | null) => { return !!x; };
 const isTruthy = (x: number | null) => !!x;
->isTruthy : (x: number | null) => x is number
->(x: number | null) => !!x : (x: number | null) => x is number
+>isTruthy : (x: number | null) => boolean
+>(x: number | null) => !!x : (x: number | null) => boolean
 >x : number | null
 >!!x : boolean
 >!x : boolean
@@ -71,8 +71,8 @@ const isTruthy = (x: number | null) => !!x;
 const evenSquares: number[] =
 >evenSquares : number[]
 
-[1, 2, 3, 4]
->[1, 2, 3, 4]    .map(x => x % 2 === 0 ? x * x : null)      .filter(isTruthy) : number[]
+    [1, 2, 3, 4]
+>[1, 2, 3, 4]    .map(x => x % 2 === 0 ? x * x : null)      .filter(isTruthy) : (number | null)[]
 >[1, 2, 3, 4]    .map(x => x % 2 === 0 ? x * x : null)      .filter : { <S extends number | null>(predicate: (value: number | null, index: number, array: (number | null)[]) => value is S, thisArg?: any): S[]; (predicate: (value: number | null, index: number, array: (number | null)[]) => unknown, thisArg?: any): (number | null)[]; }
 >[1, 2, 3, 4]    .map(x => x % 2 === 0 ? x * x : null) : (number | null)[]
 >[1, 2, 3, 4]    .map : <U>(callbackfn: (value: number, index: number, array: number[]) => U, thisArg?: any) => U[]
@@ -98,7 +98,42 @@ const evenSquares: number[] =
 
       .filter(isTruthy);
 >filter : { <S extends number | null>(predicate: (value: number | null, index: number, array: (number | null)[]) => value is S, thisArg?: any): S[]; (predicate: (value: number | null, index: number, array: (number | null)[]) => unknown, thisArg?: any): (number | null)[]; }
->isTruthy : (x: number | null) => x is number
+>isTruthy : (x: number | null) => boolean
+
+const evenSquaresNonNull: number[] =
+>evenSquaresNonNull : number[]
+
+    [1, 2, 3, 4]
+>[1, 2, 3, 4]    .map(x => x % 2 === 0 ? x * x : null)    .filter(x => x !== null) : number[]
+>[1, 2, 3, 4]    .map(x => x % 2 === 0 ? x * x : null)    .filter : { <S extends number | null>(predicate: (value: number | null, index: number, array: (number | null)[]) => value is S, thisArg?: any): S[]; (predicate: (value: number | null, index: number, array: (number | null)[]) => unknown, thisArg?: any): (number | null)[]; }
+>[1, 2, 3, 4]    .map(x => x % 2 === 0 ? x * x : null) : (number | null)[]
+>[1, 2, 3, 4]    .map : <U>(callbackfn: (value: number, index: number, array: number[]) => U, thisArg?: any) => U[]
+>[1, 2, 3, 4] : number[]
+>1 : 1
+>2 : 2
+>3 : 3
+>4 : 4
+
+    .map(x => x % 2 === 0 ? x * x : null)
+>map : <U>(callbackfn: (value: number, index: number, array: number[]) => U, thisArg?: any) => U[]
+>x => x % 2 === 0 ? x * x : null : (x: number) => number | null
+>x : number
+>x % 2 === 0 ? x * x : null : number | null
+>x % 2 === 0 : boolean
+>x % 2 : number
+>x : number
+>2 : 2
+>0 : 0
+>x * x : number
+>x : number
+>x : number
+
+    .filter(x => x !== null);
+>filter : { <S extends number | null>(predicate: (value: number | null, index: number, array: (number | null)[]) => value is S, thisArg?: any): S[]; (predicate: (value: number | null, index: number, array: (number | null)[]) => unknown, thisArg?: any): (number | null)[]; }
+>x => x !== null : (x: number | null) => x is number
+>x : number | null
+>x !== null : boolean
+>x : number | null
 
 // Type guards can flow between functions
 const myGuard = (o: string | undefined): o is string => !!o;
@@ -301,7 +336,7 @@ const [strs1, nums1] = partition(strsOrNums, isString); // nums1 should be numbe
 >isString : (x: string | number) => x is string
 
 function flakyIsString(x: string | number) {
->flakyIsString : (x: string | number) => x is string
+>flakyIsString : (x: string | number) => boolean
 >x : string | number
 
   return typeof x === 'string' && Math.random() > 0.5;
@@ -318,12 +353,12 @@ function flakyIsString(x: string | number) {
 >0.5 : 0.5
 }
 const [strs2, nums2] = partition(strsOrNums, flakyIsString); // nums2 should be (string|number)[]
->strs2 : string[]
->nums2 : number[]
->partition(strsOrNums, flakyIsString) : [string[], number[]]
+>strs2 : (string | number)[]
+>nums2 : never[]
+>partition(strsOrNums, flakyIsString) : [(string | number)[], never[]]
 >partition : <T, R extends T>(els: T[], pred: (x: T) => x is R) => [R[], Exclude<T, R>[]]
 >strsOrNums : (string | number)[]
->flakyIsString : (x: string | number) => x is string
+>flakyIsString : (x: string | number) => boolean
 
 function isDate(x: object): x is Date {
 >isDate : (x: object) => x is Date

@@ -13,9 +13,14 @@ const evenSquaresInline: number[] =
 const isTruthy = (x: number | null) => !!x;
 
 const evenSquares: number[] =
-[1, 2, 3, 4]
+    [1, 2, 3, 4]
     .map(x => x % 2 === 0 ? x * x : null)
       .filter(isTruthy);
+
+const evenSquaresNonNull: number[] =
+    [1, 2, 3, 4]
+    .map(x => x % 2 === 0 ? x * x : null)
+    .filter(x => x !== null);
 
 // Type guards can flow between functions
 const myGuard = (o: string | undefined): o is string => !!o;

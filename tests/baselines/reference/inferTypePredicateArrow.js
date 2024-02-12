@@ -15,9 +15,14 @@ const evenSquaresInline: number[] =
 const isTruthy = (x: number | null) => !!x;
 
 const evenSquares: number[] =
-[1, 2, 3, 4]
+    [1, 2, 3, 4]
     .map(x => x % 2 === 0 ? x * x : null)
       .filter(isTruthy);
+
+const evenSquaresNonNull: number[] =
+    [1, 2, 3, 4]
+    .map(x => x % 2 === 0 ? x * x : null)
+    .filter(x => x !== null);
 
 // Type guards can flow between functions
 const myGuard = (o: string | undefined): o is string => !!o;
@@ -104,6 +109,9 @@ var isTruthy = function (x) { return !!x; };
 var evenSquares = [1, 2, 3, 4]
     .map(function (x) { return x % 2 === 0 ? x * x : null; })
     .filter(isTruthy);
+var evenSquaresNonNull = [1, 2, 3, 4]
+    .map(function (x) { return x % 2 === 0 ? x * x : null; })
+    .filter(function (x) { return x !== null; });
 // Type guards can flow between functions
 var myGuard = function (o) { return !!o; };
 var mySecondGuard = function (o) { return myGuard(o); };
