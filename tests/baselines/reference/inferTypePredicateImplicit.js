@@ -11,6 +11,12 @@ if (isNonNull(tNN)) {
   let t: number = tNN;
 }
 
+// Should not infer a type predicate for this function.
+// true return => x is string, but false return !=> x is number
+function flakyIsString(x: string | number) {
+  return typeof x === 'string' && Math.random() > 0.5;
+}
+
 
 //// [inferTypePredicateImplicit.js]
 function isNonNull(x) {
@@ -19,4 +25,9 @@ function isNonNull(x) {
 }
 if (isNonNull(tNN)) {
     var t = tNN;
+}
+// Should not infer a type predicate for this function.
+// true return => x is string, but false return !=> x is number
+function flakyIsString(x) {
+    return typeof x === 'string' && Math.random() > 0.5;
 }

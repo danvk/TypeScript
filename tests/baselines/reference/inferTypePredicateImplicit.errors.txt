@@ -15,3 +15,9 @@ inferTypePredicateImplicit.ts(2,9): error TS2448: Block-scoped variable 'ok' use
       let t: number = tNN;
     }
     
+    // Should not infer a type predicate for this function.
+    // true return => x is string, but false return !=> x is number
+    function flakyIsString(x: string | number) {
+      return typeof x === 'string' && Math.random() > 0.5;
+    }
+    

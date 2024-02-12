@@ -1,0 +1,194 @@
+//// [tests/cases/compiler/inferTypePredicateArrow.ts] ////
+
+=== inferTypePredicateArrow.ts ===
+// https://github.com/microsoft/TypeScript/issues/16069
+
+const numsOrNull = [1, 2, 3, 4, null];
+>numsOrNull : Symbol(numsOrNull, Decl(inferTypePredicateArrow.ts, 2, 5))
+
+const filteredNums = numsOrNull.filter(x => !!x);
+>filteredNums : Symbol(filteredNums, Decl(inferTypePredicateArrow.ts, 3, 5))
+>numsOrNull.filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>numsOrNull : Symbol(numsOrNull, Decl(inferTypePredicateArrow.ts, 2, 5))
+>filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 3, 39))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 3, 39))
+
+const evenSquaresInline: number[] =
+>evenSquaresInline : Symbol(evenSquaresInline, Decl(inferTypePredicateArrow.ts, 5, 5))
+
+    [1, 2, 3, 4]
+>[1, 2, 3, 4]        .map(x => x % 2 === 0 ? x * x : null)        .filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>[1, 2, 3, 4]        .map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
+
+        .map(x => x % 2 === 0 ? x * x : null)
+>map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 7, 13))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 7, 13))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 7, 13))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 7, 13))
+
+        .filter(x => !!x);
+>filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 8, 16))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 8, 16))
+
+// const isTruthy = (x: number | null) => { return !!x; };
+const isTruthy = (x: number | null) => !!x;
+>isTruthy : Symbol(isTruthy, Decl(inferTypePredicateArrow.ts, 11, 5))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 11, 18))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 11, 18))
+
+const evenSquares: number[] =
+>evenSquares : Symbol(evenSquares, Decl(inferTypePredicateArrow.ts, 13, 5))
+
+[1, 2, 3, 4]
+>[1, 2, 3, 4]    .map(x => x % 2 === 0 ? x * x : null)      .filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>[1, 2, 3, 4]    .map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
+
+    .map(x => x % 2 === 0 ? x * x : null)
+>map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 15, 9))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 15, 9))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 15, 9))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 15, 9))
+
+      .filter(isTruthy);
+>filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>isTruthy : Symbol(isTruthy, Decl(inferTypePredicateArrow.ts, 11, 5))
+
+// Type guards can flow between functions
+const myGuard = (o: string | undefined): o is string => !!o;
+>myGuard : Symbol(myGuard, Decl(inferTypePredicateArrow.ts, 19, 5))
+>o : Symbol(o, Decl(inferTypePredicateArrow.ts, 19, 17))
+>o : Symbol(o, Decl(inferTypePredicateArrow.ts, 19, 17))
+>o : Symbol(o, Decl(inferTypePredicateArrow.ts, 19, 17))
+
+const mySecondGuard = (o: string | undefined) => myGuard(o);
+>mySecondGuard : Symbol(mySecondGuard, Decl(inferTypePredicateArrow.ts, 20, 5))
+>o : Symbol(o, Decl(inferTypePredicateArrow.ts, 20, 23))
+>myGuard : Symbol(myGuard, Decl(inferTypePredicateArrow.ts, 19, 5))
+>o : Symbol(o, Decl(inferTypePredicateArrow.ts, 20, 23))
+
+// https://github.com/microsoft/TypeScript/issues/16069#issuecomment-1327449914
+type MyObj = { data?: string };
+>MyObj : Symbol(MyObj, Decl(inferTypePredicateArrow.ts, 20, 60))
+>data : Symbol(data, Decl(inferTypePredicateArrow.ts, 23, 14))
+
+type MyArray = { list?: MyObj[] }[];
+>MyArray : Symbol(MyArray, Decl(inferTypePredicateArrow.ts, 23, 31))
+>list : Symbol(list, Decl(inferTypePredicateArrow.ts, 24, 16))
+>MyObj : Symbol(MyObj, Decl(inferTypePredicateArrow.ts, 20, 60))
+
+const myArray: MyArray = [];
+>myArray : Symbol(myArray, Decl(inferTypePredicateArrow.ts, 25, 5))
+>MyArray : Symbol(MyArray, Decl(inferTypePredicateArrow.ts, 23, 31))
+
+const result = myArray
+>result : Symbol(result, Decl(inferTypePredicateArrow.ts, 27, 5))
+>myArray  .map((arr) => arr.list)  .filter((arr) => arr && arr.length)  .map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
+>myArray  .map((arr) => arr.list)  .filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>myArray  .map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
+>myArray : Symbol(myArray, Decl(inferTypePredicateArrow.ts, 25, 5))
+
+  .map((arr) => arr.list)
+>map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
+>arr : Symbol(arr, Decl(inferTypePredicateArrow.ts, 28, 8))
+>arr.list : Symbol(list, Decl(inferTypePredicateArrow.ts, 24, 16))
+>arr : Symbol(arr, Decl(inferTypePredicateArrow.ts, 28, 8))
+>list : Symbol(list, Decl(inferTypePredicateArrow.ts, 24, 16))
+
+  .filter((arr) => arr && arr.length)
+>filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>arr : Symbol(arr, Decl(inferTypePredicateArrow.ts, 29, 11))
+>arr : Symbol(arr, Decl(inferTypePredicateArrow.ts, 29, 11))
+>arr.length : Symbol(Array.length, Decl(lib.es5.d.ts, --, --))
+>arr : Symbol(arr, Decl(inferTypePredicateArrow.ts, 29, 11))
+>length : Symbol(Array.length, Decl(lib.es5.d.ts, --, --))
+
+  .map((arr) => arr
+>map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
+>arr : Symbol(arr, Decl(inferTypePredicateArrow.ts, 30, 8))
+>arr//              ^^^ Object is possibly 'undefined'.    .filter((obj) => obj && obj.data)    .map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
+>arr//              ^^^ Object is possibly 'undefined'.    .filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>arr : Symbol(arr, Decl(inferTypePredicateArrow.ts, 30, 8))
+
+//              ^^^ Object is possibly 'undefined'.
+    .filter((obj) => obj && obj.data)
+>filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>obj : Symbol(obj, Decl(inferTypePredicateArrow.ts, 32, 13))
+>obj : Symbol(obj, Decl(inferTypePredicateArrow.ts, 32, 13))
+>obj.data : Symbol(data, Decl(inferTypePredicateArrow.ts, 23, 14))
+>obj : Symbol(obj, Decl(inferTypePredicateArrow.ts, 32, 13))
+>data : Symbol(data, Decl(inferTypePredicateArrow.ts, 23, 14))
+
+    .map(obj => JSON.parse(obj.data))
+>map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
+>obj : Symbol(obj, Decl(inferTypePredicateArrow.ts, 33, 9))
+>JSON.parse : Symbol(JSON.parse, Decl(lib.es5.d.ts, --, --))
+>JSON : Symbol(JSON, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>parse : Symbol(JSON.parse, Decl(lib.es5.d.ts, --, --))
+>obj.data : Symbol(data, Decl(inferTypePredicateArrow.ts, 23, 14))
+>obj : Symbol(obj, Decl(inferTypePredicateArrow.ts, 33, 9))
+>data : Symbol(data, Decl(inferTypePredicateArrow.ts, 23, 14))
+
+//                         ^^^^^^^^ Type 'undefined' is not assignable to type 'string'.
+  );
+
+// https://github.com/microsoft/TypeScript/issues/16069#issuecomment-1335186481
+
+// https://github.com/microsoft/TypeScript/issues/16069#issuecomment-1183547889
+type Foo = {
+>Foo : Symbol(Foo, Decl(inferTypePredicateArrow.ts, 35, 4))
+
+  foo: string;
+>foo : Symbol(foo, Decl(inferTypePredicateArrow.ts, 40, 12))
+}
+type Bar = Foo & {
+>Bar : Symbol(Bar, Decl(inferTypePredicateArrow.ts, 42, 1))
+>Foo : Symbol(Foo, Decl(inferTypePredicateArrow.ts, 35, 4))
+
+  bar: string;
+>bar : Symbol(bar, Decl(inferTypePredicateArrow.ts, 43, 18))
+}
+
+const list: (Foo | Bar)[] = [];
+>list : Symbol(list, Decl(inferTypePredicateArrow.ts, 47, 5))
+>Foo : Symbol(Foo, Decl(inferTypePredicateArrow.ts, 35, 4))
+>Bar : Symbol(Bar, Decl(inferTypePredicateArrow.ts, 42, 1))
+
+const resultBar = list.filter((value) => 'bar' in value);
+>resultBar : Symbol(resultBar, Decl(inferTypePredicateArrow.ts, 48, 5))
+>list.filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>list : Symbol(list, Decl(inferTypePredicateArrow.ts, 47, 5))
+>filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>value : Symbol(value, Decl(inferTypePredicateArrow.ts, 48, 31))
+>value : Symbol(value, Decl(inferTypePredicateArrow.ts, 48, 31))
+
+// result type should be `Bar[]`
+
+// https://github.com/microsoft/TypeScript/issues/38390#issuecomment-626019466
+// Ryan's example:
+const a = [1, "foo", 2, "bar"].filter(x => typeof x === "string");
+>a : Symbol(a, Decl(inferTypePredicateArrow.ts, 53, 5))
+>[1, "foo", 2, "bar"].filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 53, 38))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 53, 38))
+
+// Currently legal
+a.push(10);
+>a.push : Symbol(Array.push, Decl(lib.es5.d.ts, --, --))
+>a : Symbol(a, Decl(inferTypePredicateArrow.ts, 53, 5))
+>push : Symbol(Array.push, Decl(lib.es5.d.ts, --, --))
+
+// Defer to explicit type guards, even when they're incorrect.
+function backwardsGuard(x: number|string): x is number {
+>backwardsGuard : Symbol(backwardsGuard, Decl(inferTypePredicateArrow.ts, 55, 11))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 58, 24))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 58, 24))
+
+  return typeof x === 'string';
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 58, 24))
+}
+

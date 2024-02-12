@@ -25,3 +25,16 @@ if (isNonNull(tNN)) {
 >tNN : Symbol(tNN, Decl(inferTypePredicateImplicit.ts, 5, 11))
 }
 
+// Should not infer a type predicate for this function.
+// true return => x is string, but false return !=> x is number
+function flakyIsString(x: string | number) {
+>flakyIsString : Symbol(flakyIsString, Decl(inferTypePredicateImplicit.ts, 8, 1))
+>x : Symbol(x, Decl(inferTypePredicateImplicit.ts, 12, 23))
+
+  return typeof x === 'string' && Math.random() > 0.5;
+>x : Symbol(x, Decl(inferTypePredicateImplicit.ts, 12, 23))
+>Math.random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+>Math : Symbol(Math, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+}
+
