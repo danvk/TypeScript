@@ -37422,8 +37422,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             const [i, type] = aggregatedPredicates[0];
             const param = func.parameters[i];
             if (param.name.kind === SyntaxKind.Identifier) {
-                // @ts-expect-error will deal with escaping issue later
-                return createTypePredicate(TypePredicateKind.Identifier, param.name.escapedText, i, type);
+                // TODO: is there an alternative to the "as string" here? (It's __String)
+                return createTypePredicate(TypePredicateKind.Identifier, param.name.escapedText as string, i, type);
             }
         }
         return;
@@ -37435,7 +37435,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             if (type === booleanType && func.body) {
                 for (const [i, param] of func.parameters.entries()) {
                     const initType = getSymbolLinks(param.symbol).type;
-                    // const initType = links;
                     if (!initType || initType === booleanType) {
                         // Debateable: refining "x: boolean" to "x is true" isn't useful.
                         continue;
