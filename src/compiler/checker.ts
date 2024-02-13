@@ -37430,7 +37430,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
                 const antecedent = (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start };
                 const trueCondition: FlowCondition = {
-                    flags: FlowFlags.TrueCondition | FlowFlags.Referenced | FlowFlags.Shared,
+                    flags: FlowFlags.TrueCondition,
                     node: expr,
                     antecedent,
                 };
@@ -37445,7 +37445,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 // However, TS may not be able to represent "not T", in which case we can be more lax.
                 const falseCondition: FlowCondition = {
                     ...trueCondition,
-                    flags: FlowFlags.FalseCondition | FlowFlags.Referenced | FlowFlags.Shared,
+                    flags: FlowFlags.FalseCondition,
                 }
                 const narrowedParamTypeFalse = getFlowTypeOfReference(param.name, initType, initType, func, falseCondition);
                 // It's safe to infer a type guard if:
