@@ -37486,6 +37486,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                             // I think I want:
                             // candidateFalse = filterType(initType, t => isTypeSubtypeOf(t, narrowedTypeParamTrue))
                             // isTypeIdenticalTo(candidateFalse, narrowedParamTypeFalse)
+                            // XXX this isn't the same as Exclude<U, T> for boolean types.
                             const candidateFalse = filterType(initType, t => !isTypeSubtypeOf(t, narrowedParamTypeTrue));
                             const canInferGuard = isTypeIdenticalTo(candidateFalse, narrowedParamTypeFalse);
                             // console.log(canInferGuard);
@@ -37507,6 +37508,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         // TODO: look into whether I can synthesize an Identifier for the param
         // Find a reference to try refining; there must be a better way!
         function getIdentifierForParam(param: ParameterDeclaration): Identifier | undefined {
+            const links = getNodeLinks(param);
+            console.log(links);
             return func.body && forEachChildRecursively(func.body, (node) => {
                 // XXX could I do node.symbol === param.symbol here?
                 // resolving identifier "foo" if it's part of "this.foo" will cause an error here.

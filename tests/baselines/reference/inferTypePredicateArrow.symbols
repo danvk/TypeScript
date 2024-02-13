@@ -306,3 +306,19 @@ const [dates2, objs2] = partition(maybeDates, flakyIsDate); // should be [Date[]
 >maybeDates : Symbol(maybeDates, Decl(inferTypePredicateArrow.ts, 91, 11))
 >flakyIsDate : Symbol(flakyIsDate, Decl(inferTypePredicateArrow.ts, 86, 1))
 
+// This should not infer a type guard since the value on which we do the refinement
+// is not related to the original parameter.
+function irrelevantIsNumber(x: string | number) {
+>irrelevantIsNumber : Symbol(irrelevantIsNumber, Decl(inferTypePredicateArrow.ts, 93, 59))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 97, 28))
+
+	x = Math.random() < 0.5 ? "string" : 123;
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 97, 28))
+>Math.random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+>Math : Symbol(Math, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+
+  return typeof x === 'string';
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 97, 28))
+}
+

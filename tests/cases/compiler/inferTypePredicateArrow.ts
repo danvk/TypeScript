@@ -93,3 +93,10 @@ function flakyIsDate(x: object): x is Date {
 declare let maybeDates: object[];
 const [dates1, objs1] = partition(maybeDates, isDate); // should be [Date[], object[]]
 const [dates2, objs2] = partition(maybeDates, flakyIsDate); // should be [Date[], object[]]
+
+// This should not infer a type guard since the value on which we do the refinement
+// is not related to the original parameter.
+function irrelevantIsNumber(x: string | number) {
+	x = Math.random() < 0.5 ? "string" : 123;
+  return typeof x === 'string';
+}

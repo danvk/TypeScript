@@ -1,0 +1,14 @@
+//// [tests/cases/compiler/inferTypePredicateFocus.ts] ////
+
+=== inferTypePredicateFocus.ts ===
+const numsOrNull = [1, 2, 3, 4, null];
+>numsOrNull : Symbol(numsOrNull, Decl(inferTypePredicateFocus.ts, 0, 5))
+
+const filteredNums = numsOrNull.filter(x => !!x);
+>filteredNums : Symbol(filteredNums, Decl(inferTypePredicateFocus.ts, 1, 5))
+>numsOrNull.filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>numsOrNull : Symbol(numsOrNull, Decl(inferTypePredicateFocus.ts, 0, 5))
+>filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>x : Symbol(x, Decl(inferTypePredicateFocus.ts, 1, 39))
+>x : Symbol(x, Decl(inferTypePredicateFocus.ts, 1, 39))
+

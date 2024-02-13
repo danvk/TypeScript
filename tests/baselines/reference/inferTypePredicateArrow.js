@@ -96,6 +96,13 @@ declare let maybeDates: object[];
 const [dates1, objs1] = partition(maybeDates, isDate); // should be [Date[], object[]]
 const [dates2, objs2] = partition(maybeDates, flakyIsDate); // should be [Date[], object[]]
 
+// This should not infer a type guard since the value on which we do the refinement
+// is not related to the original parameter.
+function irrelevantIsNumber(x: string | number) {
+	x = Math.random() < 0.5 ? "string" : 123;
+  return typeof x === 'string';
+}
+
 
 //// [inferTypePredicateArrow.js]
 // https://github.com/microsoft/TypeScript/issues/16069
@@ -153,3 +160,9 @@ function flakyIsDate(x) {
 }
 var _c = partition(maybeDates, isDate), dates1 = _c[0], objs1 = _c[1]; // should be [Date[], object[]]
 var _d = partition(maybeDates, flakyIsDate), dates2 = _d[0], objs2 = _d[1]; // should be [Date[], object[]]
+// This should not infer a type guard since the value on which we do the refinement
+// is not related to the original parameter.
+function irrelevantIsNumber(x) {
+    x = Math.random() < 0.5 ? "string" : 123;
+    return typeof x === 'string';
+}
