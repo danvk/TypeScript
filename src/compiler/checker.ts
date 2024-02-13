@@ -37412,18 +37412,17 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             const type = checkExpressionCached(expr, CheckMode.TypeOnly);
             if (type !== booleanType || !func.body) return undefined;
 
-            // TODO: switch to ts.forEach
-            for (const [i, param] of func.parameters.entries()) {
+            return forEach(func.parameters, (param, i) => {
                 const initType = getSymbolLinks(param.symbol).type;
                 if (!initType || initType === booleanType || isSymbolAssigned(param.symbol)) {
                     // Refining "x: boolean" to "x is true" or "x is false" isn't useful.
-                    continue;
+                    return;
                 }
                 const trueType = checkIfExpressionRefinesParameter(expr, param, initType);
                 if (trueType) {
                     return [i, trueType];
                 }
-            }
+            });
         }
 
         function checkIfExpressionRefinesParameter(expr: Expression, param: ParameterDeclaration, initType: Type): Type | undefined {
