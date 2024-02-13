@@ -114,3 +114,7 @@ function doubleReturn(x: string|number) {
   }
   return false;
 }
+
+function guardsOneButNotOthers(a: string|number, b: string|number, c: string|number) {
+  return typeof b === 'string';
+}

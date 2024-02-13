@@ -424,3 +424,53 @@ function irrelevantIsNumber(x: string | number) {
 >'string' : "string"
 }
 
+// We shouldn't infer a type guard for either param because of the negative case.
+function areBothNums(x: string|number, y: string|number) {
+>areBothNums : (x: string | number, y: string | number) => boolean
+>x : string | number
+>y : string | number
+
+  return typeof x === 'number' && typeof y === 'number';
+>typeof x === 'number' && typeof y === 'number' : boolean
+>typeof x === 'number' : boolean
+>typeof x : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
+>x : string | number
+>'number' : "number"
+>typeof y === 'number' : boolean
+>typeof y : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
+>y : string | number
+>'number' : "number"
+}
+
+// It would be valid to infer a type guard for this function, but it would require some
+// unification across the two return statements.
+function doubleReturn(x: string|number) {
+>doubleReturn : (x: string | number) => boolean
+>x : string | number
+
+  if (typeof x === 'string') {
+>typeof x === 'string' : boolean
+>typeof x : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
+>x : string | number
+>'string' : "string"
+
+    return true;
+>true : true
+  }
+  return false;
+>false : false
+}
+
+function guardsOneButNotOthers(a: string|number, b: string|number, c: string|number) {
+>guardsOneButNotOthers : (a: string | number, b: string | number, c: string | number) => b is string
+>a : string | number
+>b : string | number
+>c : string | number
+
+  return typeof b === 'string';
+>typeof b === 'string' : boolean
+>typeof b : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
+>b : string | number
+>'string' : "string"
+}
+
