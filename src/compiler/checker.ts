@@ -37389,34 +37389,27 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         let hasNonNarrowingReturn = false;
         const aggregatedPredicates: [number, Type][] = [];
 
-        if (func.body && func.body.kind !== SyntaxKind.Block) { // arrow function
-            const bailedEarly = checkIfExpressionRefinesParams(func.body);
-            if (bailedEarly) {
-                return;
-            }
+        let singularReturn: Expression | undefined;
+        if (func.body && func.body.kind !== SyntaxKind.Block) {
+            singularReturn = func.body; // arrow function
         } else {
-            let hasReturnWithNoExpression = functionHasImplicitReturn(func);
-            if (hasReturnWithNoExpression) {
+            if (functionHasImplicitReturn(func)) {
                 return;
             }
 
             const bailedEarly = forEachReturnStatement(func.body as Block, returnStatement => {
-                if (hasNonBooleanReturn || hasNonNarrowingReturn) {
-                    return;
-                }
-                const expr = returnStatement.expression;
-                if (expr) {
-                    return checkIfExpressionRefinesParams(expr);
-                } else {
-                    hasReturnWithNoExpression = true;
+                if (singularReturn || !returnStatement.expression) {
                     return true;
                 }
+                singularReturn = returnStatement.expression;
             });
-            if (bailedEarly) {
+            if (bailedEarly || !singularReturn) {
                 return;
             }
         }
-
+        if (checkIfExpressionRefinesParams(singularReturn)) {
+            return;
+        }
 
         if (!hasNonBooleanReturn && !hasNonNarrowingReturn && aggregatedPredicates.length === 1) {
             const [i, type] = aggregatedPredicates[0];
