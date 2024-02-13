@@ -37427,38 +37427,39 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     // Debateable: refining "x: boolean" to "x is true" isn't useful.
                     continue;
                 }
-                // FlowCondition requires an antecedent, so we synthesize one for one-liners.
+
                 const antecedent = (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start };
                 const trueCondition: FlowCondition = {
-                    // synthesized TrueCondition
                     flags: FlowFlags.TrueCondition | FlowFlags.Referenced | FlowFlags.Shared,
                     node: expr,
                     antecedent,
                 };
 
                 const paramId = getIdentifierForParam(param);
-                if (paramId) {
-                    const narrowedParamTypeTrue = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
-                    if (narrowedParamTypeTrue !== initType) {
-                        // The semantics of "x is T" are that x is T if and only if it returns true.
-                        // In other words, if it returns false then x is not T.
-                        // However, TS may not be able to represent "not T", in which case we can be more lax.
-                        const falseCondition: FlowCondition = {
-                            ...trueCondition,
-                            flags: FlowFlags.FalseCondition | FlowFlags.Referenced | FlowFlags.Shared,
-                        }
-                        const narrowedParamTypeFalse = getFlowTypeOfReference(paramId, initType, initType, func, falseCondition);
-                        // It's safe to infer a type guard if:
-                        // narrowedParamTypeFalse = Exclude<initType, narrowedParamTypeTrue>
-                        // what's the difference between a subtype and assignable relationship?
-                        // XXX this isn't the same as Exclude<U, T> for boolean types.
-                        const candidateFalse = filterType(initType, t => !isTypeSubtypeOf(t, narrowedParamTypeTrue));
-                        const canInferGuard = isTypeIdenticalTo(candidateFalse, narrowedParamTypeFalse);
-                        // console.log(canInferGuard);
-                        if (canInferGuard) {
-                            return [i, narrowedParamTypeTrue];
-                        }
-                    }
+                if (!paramId) {
+                    continue;
+                }
+                const narrowedParamTypeTrue = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
+                if (narrowedParamTypeTrue === initType) {
+                    continue;
+                }
+
+                // The semantics of "x is T" are that x is T if and only if it returns true.
+                // In other words, if it returns false then x is not T.
+                // However, TS may not be able to represent "not T", in which case we can be more lax.
+                const falseCondition: FlowCondition = {
+                    ...trueCondition,
+                    flags: FlowFlags.FalseCondition | FlowFlags.Referenced | FlowFlags.Shared,
+                }
+                const narrowedParamTypeFalse = getFlowTypeOfReference(paramId, initType, initType, func, falseCondition);
+                // It's safe to infer a type guard if:
+                // narrowedParamTypeFalse = Exclude<initType, narrowedParamTypeTrue>
+                // what's the difference between a subtype and assignable relationship?
+                // XXX this isn't the same as Exclude<U, T> for boolean types.
+                const candidateFalse = filterType(initType, t => !isTypeSubtypeOf(t, narrowedParamTypeTrue));
+                const canInferGuard = isTypeIdenticalTo(candidateFalse, narrowedParamTypeFalse);
+                if (canInferGuard) {
+                    return [i, narrowedParamTypeTrue];
                 }
             }
         }
