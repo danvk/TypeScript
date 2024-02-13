@@ -321,26 +321,39 @@ function irrelevantIsNumber(x: string | number) {
   return typeof x === 'string';
 >x : Symbol(x, Decl(inferTypePredicateArrow.ts, 97, 28))
 }
+function irrelevantIsNumberDestructuring(x: string | number) {
+>irrelevantIsNumberDestructuring : Symbol(irrelevantIsNumberDestructuring, Decl(inferTypePredicateArrow.ts, 100, 1))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 101, 41))
+
+	[x] = [Math.random() < 0.5 ? "string" : 123];
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 101, 41))
+>Math.random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+>Math : Symbol(Math, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+
+  return typeof x === 'string';
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 101, 41))
+}
 
 // We shouldn't infer a type guard for either param because of the negative case.
 function areBothNums(x: string|number, y: string|number) {
->areBothNums : Symbol(areBothNums, Decl(inferTypePredicateArrow.ts, 100, 1))
->x : Symbol(x, Decl(inferTypePredicateArrow.ts, 103, 21))
->y : Symbol(y, Decl(inferTypePredicateArrow.ts, 103, 38))
+>areBothNums : Symbol(areBothNums, Decl(inferTypePredicateArrow.ts, 104, 1))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 107, 21))
+>y : Symbol(y, Decl(inferTypePredicateArrow.ts, 107, 38))
 
   return typeof x === 'number' && typeof y === 'number';
->x : Symbol(x, Decl(inferTypePredicateArrow.ts, 103, 21))
->y : Symbol(y, Decl(inferTypePredicateArrow.ts, 103, 38))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 107, 21))
+>y : Symbol(y, Decl(inferTypePredicateArrow.ts, 107, 38))
 }
 
 // It would be valid to infer a type guard for this function, but it would require some
 // unification across the two return statements.
 function doubleReturn(x: string|number) {
->doubleReturn : Symbol(doubleReturn, Decl(inferTypePredicateArrow.ts, 105, 1))
->x : Symbol(x, Decl(inferTypePredicateArrow.ts, 109, 22))
+>doubleReturn : Symbol(doubleReturn, Decl(inferTypePredicateArrow.ts, 109, 1))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 113, 22))
 
   if (typeof x === 'string') {
->x : Symbol(x, Decl(inferTypePredicateArrow.ts, 109, 22))
+>x : Symbol(x, Decl(inferTypePredicateArrow.ts, 113, 22))
 
     return true;
   }
@@ -348,12 +361,12 @@ function doubleReturn(x: string|number) {
 }
 
 function guardsOneButNotOthers(a: string|number, b: string|number, c: string|number) {
->guardsOneButNotOthers : Symbol(guardsOneButNotOthers, Decl(inferTypePredicateArrow.ts, 114, 1))
->a : Symbol(a, Decl(inferTypePredicateArrow.ts, 116, 31))
->b : Symbol(b, Decl(inferTypePredicateArrow.ts, 116, 48))
->c : Symbol(c, Decl(inferTypePredicateArrow.ts, 116, 66))
+>guardsOneButNotOthers : Symbol(guardsOneButNotOthers, Decl(inferTypePredicateArrow.ts, 118, 1))
+>a : Symbol(a, Decl(inferTypePredicateArrow.ts, 120, 31))
+>b : Symbol(b, Decl(inferTypePredicateArrow.ts, 120, 48))
+>c : Symbol(c, Decl(inferTypePredicateArrow.ts, 120, 66))
 
   return typeof b === 'string';
->b : Symbol(b, Decl(inferTypePredicateArrow.ts, 116, 48))
+>b : Symbol(b, Decl(inferTypePredicateArrow.ts, 120, 48))
 }
 

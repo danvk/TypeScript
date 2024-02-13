@@ -37382,29 +37382,29 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         // XXX can we check for a resolved return type here?
         const functionFlags = getFunctionFlags(func);
         if (functionFlags !== FunctionFlags.Normal) {
-            return undefined;
+            return;
         }
 
-        let singularReturn: Expression | undefined;
+        let singleReturn: Expression | undefined;
         if (func.body && func.body.kind !== SyntaxKind.Block) {
-            singularReturn = func.body; // arrow function
+            singleReturn = func.body; // arrow function
         } else {
             if (functionHasImplicitReturn(func)) {
                 return;
             }
 
             const bailedEarly = forEachReturnStatement(func.body as Block, returnStatement => {
-                if (singularReturn || !returnStatement.expression) {
+                if (singleReturn || !returnStatement.expression) {
                     return true;
                 }
-                singularReturn = returnStatement.expression;
+                singleReturn = returnStatement.expression;
             });
-            if (bailedEarly || !singularReturn) {
+            if (bailedEarly || !singleReturn) {
                 return;
             }
         }
 
-        const predicate = checkIfExpressionRefinesParams(singularReturn);
+        const predicate = checkIfExpressionRefinesParams(singleReturn);
         if (predicate) {
             const [i, type] = predicate;
             const param = func.parameters[i];
@@ -37423,8 +37423,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             }
             for (const [i, param] of func.parameters.entries()) {
                 const initType = getSymbolLinks(param.symbol).type;
-                if (!initType || initType === booleanType) {
-                    // Debateable: refining "x: boolean" to "x is true" isn't useful.
+                if (!initType || initType === booleanType || isSymbolAssigned(param.symbol)) {
+                    // Refining "x: boolean" to "x is true" isn't useful.
                     continue;
                 }
 

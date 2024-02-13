@@ -102,6 +102,10 @@ function irrelevantIsNumber(x: string | number) {
 	x = Math.random() < 0.5 ? "string" : 123;
   return typeof x === 'string';
 }
+function irrelevantIsNumberDestructuring(x: string | number) {
+	[x] = [Math.random() < 0.5 ? "string" : 123];
+  return typeof x === 'string';
+}
 
 // We shouldn't infer a type guard for either param because of the negative case.
 function areBothNums(x: string|number, y: string|number) {
@@ -182,6 +186,10 @@ var _d = partition(maybeDates, flakyIsDate), dates2 = _d[0], objs2 = _d[1]; // s
 // is not related to the original parameter.
 function irrelevantIsNumber(x) {
     x = Math.random() < 0.5 ? "string" : 123;
+    return typeof x === 'string';
+}
+function irrelevantIsNumberDestructuring(x) {
+    x = [Math.random() < 0.5 ? "string" : 123][0];
     return typeof x === 'string';
 }
 // We shouldn't infer a type guard for either param because of the negative case.
