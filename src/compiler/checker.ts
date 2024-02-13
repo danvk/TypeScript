@@ -37435,11 +37435,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     antecedent,
                 };
 
-                const paramId = getIdentifierForParam(param);
-                if (!paramId) {
-                    continue;
-                }
-                const narrowedParamTypeTrue = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
+                const narrowedParamTypeTrue = getFlowTypeOfReference(param.name, initType, initType, func, trueCondition);
                 if (narrowedParamTypeTrue === initType) {
                     continue;
                 }
@@ -37451,7 +37447,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     ...trueCondition,
                     flags: FlowFlags.FalseCondition | FlowFlags.Referenced | FlowFlags.Shared,
                 }
-                const narrowedParamTypeFalse = getFlowTypeOfReference(paramId, initType, initType, func, falseCondition);
+                const narrowedParamTypeFalse = getFlowTypeOfReference(param.name, initType, initType, func, falseCondition);
                 // It's safe to infer a type guard if:
                 // narrowedParamTypeFalse = Exclude<initType, narrowedParamTypeTrue>
                 // what's the difference between a subtype and assignable relationship?
@@ -37462,18 +37458,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     return [i, narrowedParamTypeTrue];
                 }
             }
-        }
-
-        // TODO: look into whether I can synthesize an Identifier for the param
-        // Find a reference to try refining; there must be a better way!
-        function getIdentifierForParam(param: ParameterDeclaration): Identifier | undefined {
-            return func.body && forEachChildRecursively(func.body, (node) => {
-                // XXX could I do node.symbol === param.symbol here?
-                // resolving identifier "foo" if it's part of "this.foo" will cause an error here.
-                if (isIdentifier(node) && !isPropertyAccessExpression(node.parent) && getResolvedSymbol(node) === param.symbol) {
-                    return node;
-                }
-            });
         }
     }
 
