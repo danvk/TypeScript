@@ -37434,18 +37434,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             const type = checkExpressionCached(expr, CheckMode.Contextual);
             if (type === booleanType && func.body) {
                 for (const [i, param] of func.parameters.entries()) {
-                    let initType = getTypeForVariableLikeDeclaration(param, /*includeOptionality*/ false, CheckMode.Normal);
-                    if (!initType) {
-                        // This branch is for parameters that only have a contextual type.
-                        // If so, we try a little harder to figure out their type.
-                        const paramId = getIdentifierForParam(param);
-                        if (paramId) {
-                            // It would be really nice to get the type of the parameter in the parameter
-                            // list, not at the first usage. But getNarrowedTypeOfSymbol wants an Identifier.
-                            // If the first use is in a narrowed context, this may be incorrect.
-                            initType = getNarrowedTypeOfSymbol(param.symbol, paramId);
-                        }
-                    }
+                    const initType = getSymbolLinks(param.symbol).type;
+                    // const initType = links;
                     if (!initType || initType === booleanType) {
                         // Debateable: refining "x: boolean" to "x is true" isn't useful.
                         continue;
@@ -37508,8 +37498,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         // TODO: look into whether I can synthesize an Identifier for the param
         // Find a reference to try refining; there must be a better way!
         function getIdentifierForParam(param: ParameterDeclaration): Identifier | undefined {
-            const links = getNodeLinks(param);
-            console.log(links);
             return func.body && forEachChildRecursively(func.body, (node) => {
                 // XXX could I do node.symbol === param.symbol here?
                 // resolving identifier "foo" if it's part of "this.foo" will cause an error here.
