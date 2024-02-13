@@ -59,7 +59,7 @@ function foo3(x: number | string) {
 >x : string
 }
 function foo4(x: number | string | boolean) {
->foo4 : (x: number | string | boolean) => x is string | number | true
+>foo4 : (x: number | string | boolean) => boolean
 >x : string | number | boolean
 
     return typeof x === "string" // string | number | boolean

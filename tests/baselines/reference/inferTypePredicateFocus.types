@@ -1,23 +1,27 @@
 //// [tests/cases/compiler/inferTypePredicateFocus.ts] ////
 
 === inferTypePredicateFocus.ts ===
-const numsOrNull = [1, 2, 3, 4, null];
->numsOrNull : (number | null)[]
->[1, 2, 3, 4, null] : (number | null)[]
->1 : 1
->2 : 2
->3 : 3
->4 : 4
+function irrelevantIsNumber(x: string | number) {
+>irrelevantIsNumber : (x: string | number) => boolean
+>x : string | number
 
-const filteredNums = numsOrNull.filter(x => !!x);
->filteredNums : (number | null)[]
->numsOrNull.filter(x => !!x) : (number | null)[]
->numsOrNull.filter : { <S extends number | null>(predicate: (value: number | null, index: number, array: (number | null)[]) => value is S, thisArg?: any): S[]; (predicate: (value: number | null, index: number, array: (number | null)[]) => unknown, thisArg?: any): (number | null)[]; }
->numsOrNull : (number | null)[]
->filter : { <S extends number | null>(predicate: (value: number | null, index: number, array: (number | null)[]) => value is S, thisArg?: any): S[]; (predicate: (value: number | null, index: number, array: (number | null)[]) => unknown, thisArg?: any): (number | null)[]; }
->x => !!x : (x: number | null) => boolean
->x : number | null
->!!x : boolean
->!x : boolean
->x : number | null
+	x = Math.random() < 0.5 ? "string" : 123;
+>x = Math.random() < 0.5 ? "string" : 123 : "string" | 123
+>x : string | number
+>Math.random() < 0.5 ? "string" : 123 : "string" | 123
+>Math.random() < 0.5 : boolean
+>Math.random() : number
+>Math.random : () => number
+>Math : Math
+>random : () => number
+>0.5 : 0.5
+>"string" : "string"
+>123 : 123
+
+  return typeof x === 'string';
+>typeof x === 'string' : boolean
+>typeof x : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
+>x : string | number
+>'string' : "string"
+}
 

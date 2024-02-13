@@ -30,7 +30,7 @@ if (isNonNull(tNN)) {
 // Should not infer a type predicate for this function.
 // true return => x is string, but false return !=> x is number
 function flakyIsString(x: string | number) {
->flakyIsString : (x: string | number) => x is string
+>flakyIsString : (x: string | number) => boolean
 >x : string | number
 
   return typeof x === 'string' && Math.random() > 0.5;
@@ -45,5 +45,25 @@ function flakyIsString(x: string | number) {
 >Math : Math
 >random : () => number
 >0.5 : 0.5
+}
+
+function isNonNullExplicit(x: number | null) {
+>isNonNullExplicit : (x: number | null) => x is number
+>x : number | null
+
+  const ok = x !== null;
+>ok : boolean
+>x !== null : boolean
+>x : number | null
+
+  if (ok) {
+>ok : boolean
+
+    let t: number = x;
+>t : number
+>x : number
+  }
+  return ok;
+>ok : boolean
 }
 

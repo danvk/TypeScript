@@ -17,6 +17,14 @@ function flakyIsString(x: string | number) {
   return typeof x === 'string' && Math.random() > 0.5;
 }
 
+function isNonNullExplicit(x: number | null) {
+  const ok = x !== null;
+  if (ok) {
+    let t: number = x;
+  }
+  return ok;
+}
+
 
 //// [inferTypePredicateImplicit.js]
 function isNonNull(x) {
@@ -30,4 +38,11 @@ if (isNonNull(tNN)) {
 // true return => x is string, but false return !=> x is number
 function flakyIsString(x) {
     return typeof x === 'string' && Math.random() > 0.5;
+}
+function isNonNullExplicit(x) {
+    var ok = x !== null;
+    if (ok) {
+        var t = x;
+    }
+    return ok;
 }

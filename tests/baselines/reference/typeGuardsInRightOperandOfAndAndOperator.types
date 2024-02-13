@@ -4,7 +4,7 @@
 // In the right operand of a && operation, 
 // the type of a variable or parameter is narrowed by any type guard in the left operand when true.
 function foo(x: number | string) {
->foo : (x: number | string) => x is string
+>foo : (x: number | string) => boolean
 >x : string | number
 
     return typeof x === "string" && x.length === 10; // string
@@ -58,7 +58,7 @@ function foo3(x: number | string) {
 >x : string
 }
 function foo4(x: number | string | boolean) {
->foo4 : (x: number | string | boolean) => x is true
+>foo4 : (x: number | string | boolean) => boolean
 >x : string | number | boolean
 
     return typeof x !== "string" // string | number | boolean
@@ -79,7 +79,7 @@ function foo4(x: number | string | boolean) {
 >x : boolean
 }
 function foo5(x: number | string | boolean) {
->foo5 : (x: number | string | boolean) => x is true
+>foo5 : (x: number | string | boolean) => boolean
 >x : string | number | boolean
 
     // usage of x or assignment to separate variable shouldn't cause narrowing of type to stop
@@ -111,7 +111,7 @@ function foo5(x: number | string | boolean) {
 >x : true
 }
 function foo6(x: number | string | boolean) {
->foo6 : (x: number | string | boolean) => x is number | boolean
+>foo6 : (x: number | string | boolean) => boolean
 >x : string | number | boolean
 
     // Mixing typeguard narrowing in if statement with conditional expression typeguard

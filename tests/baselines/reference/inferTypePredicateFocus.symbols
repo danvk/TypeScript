@@ -1,14 +1,17 @@
 //// [tests/cases/compiler/inferTypePredicateFocus.ts] ////
 
 === inferTypePredicateFocus.ts ===
-const numsOrNull = [1, 2, 3, 4, null];
->numsOrNull : Symbol(numsOrNull, Decl(inferTypePredicateFocus.ts, 0, 5))
+function irrelevantIsNumber(x: string | number) {
+>irrelevantIsNumber : Symbol(irrelevantIsNumber, Decl(inferTypePredicateFocus.ts, 0, 0))
+>x : Symbol(x, Decl(inferTypePredicateFocus.ts, 0, 28))
 
-const filteredNums = numsOrNull.filter(x => !!x);
->filteredNums : Symbol(filteredNums, Decl(inferTypePredicateFocus.ts, 1, 5))
->numsOrNull.filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
->numsOrNull : Symbol(numsOrNull, Decl(inferTypePredicateFocus.ts, 0, 5))
->filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
->x : Symbol(x, Decl(inferTypePredicateFocus.ts, 1, 39))
->x : Symbol(x, Decl(inferTypePredicateFocus.ts, 1, 39))
+	x = Math.random() < 0.5 ? "string" : 123;
+>x : Symbol(x, Decl(inferTypePredicateFocus.ts, 0, 28))
+>Math.random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+>Math : Symbol(Math, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+
+  return typeof x === 'string';
+>x : Symbol(x, Decl(inferTypePredicateFocus.ts, 0, 28))
+}
 

@@ -38,3 +38,22 @@ function flakyIsString(x: string | number) {
 >random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
 }
 
+function isNonNullExplicit(x: number | null) {
+>isNonNullExplicit : Symbol(isNonNullExplicit, Decl(inferTypePredicateImplicit.ts, 14, 1))
+>x : Symbol(x, Decl(inferTypePredicateImplicit.ts, 16, 27))
+
+  const ok = x !== null;
+>ok : Symbol(ok, Decl(inferTypePredicateImplicit.ts, 17, 7))
+>x : Symbol(x, Decl(inferTypePredicateImplicit.ts, 16, 27))
+
+  if (ok) {
+>ok : Symbol(ok, Decl(inferTypePredicateImplicit.ts, 17, 7))
+
+    let t: number = x;
+>t : Symbol(t, Decl(inferTypePredicateImplicit.ts, 19, 7))
+>x : Symbol(x, Decl(inferTypePredicateImplicit.ts, 16, 27))
+  }
+  return ok;
+>ok : Symbol(ok, Decl(inferTypePredicateImplicit.ts, 17, 7))
+}
+
