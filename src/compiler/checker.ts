@@ -37381,30 +37381,22 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     function getTypePredicateFromBody(func: FunctionLikeDeclaration, _sig: Signature): TypePredicate | undefined {
         // XXX can we check for a resolved return type here?
         const functionFlags = getFunctionFlags(func);
-        if (functionFlags !== FunctionFlags.Normal) {
-            return;
-        }
+        if (functionFlags !== FunctionFlags.Normal) return undefined;
 
         let singleReturn: Expression | undefined;
         if (func.body && func.body.kind !== SyntaxKind.Block) {
             singleReturn = func.body; // arrow function
         } else {
-            if (functionHasImplicitReturn(func)) {
-                return;
-            }
+            if (functionHasImplicitReturn(func)) return undefined;
 
             const bailedEarly = forEachReturnStatement(func.body as Block, returnStatement => {
-                if (singleReturn || !returnStatement.expression) {
-                    return true;
-                }
+                if (singleReturn || !returnStatement.expression) return true;
                 singleReturn = returnStatement.expression;
             });
-            if (bailedEarly || !singleReturn) {
-                return;
-            }
+            if (bailedEarly || !singleReturn) return undefined;
         }
 
-        const predicate = checkIfExpressionRefinesParams(singleReturn);
+        const predicate = checkIfExpressionRefinesAnyParameter(singleReturn);
         if (predicate) {
             const [i, type] = predicate;
             const param = func.parameters[i];
@@ -37413,50 +37405,54 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 return createTypePredicate(TypePredicateKind.Identifier, param.name.escapedText as string, i, type);
             }
         }
-        return;
+        return undefined;
 
-        function checkIfExpressionRefinesParams(expr: Expression): [number, Type] | undefined {
+        function checkIfExpressionRefinesAnyParameter(expr: Expression): [number, Type] | undefined {
             expr = skipParentheses(expr, /*excludeJSDocTypeAssertions*/ true);
             const type = checkExpressionCached(expr, CheckMode.TypeOnly);
-            if (type !== booleanType || !func.body) {
-                return;
-            }
+            if (type !== booleanType || !func.body) return undefined;
+
+            // TODO: switch to ts.forEach
             for (const [i, param] of func.parameters.entries()) {
                 const initType = getSymbolLinks(param.symbol).type;
                 if (!initType || initType === booleanType || isSymbolAssigned(param.symbol)) {
-                    // Refining "x: boolean" to "x is true" isn't useful.
+                    // Refining "x: boolean" to "x is true" or "x is false" isn't useful.
                     continue;
                 }
-
-                const antecedent = (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start };
-                const trueCondition: FlowCondition = {
-                    flags: FlowFlags.TrueCondition,
-                    node: expr,
-                    antecedent,
-                };
-
-                const narrowedParamTypeTrue = getFlowTypeOfReference(param.name, initType, initType, func, trueCondition);
-                if (narrowedParamTypeTrue === initType) {
-                    continue;
+                const trueType = checkIfExpressionRefinesParameter(expr, param, initType);
+                if (trueType) {
+                    return [i, trueType];
                 }
+            }
+        }
 
-                // The semantics of "x is T" are that x is T if and only if it returns true.
-                // In other words, if it returns false then x is not T.
-                // However, TS may not be able to represent "not T", in which case we can be more lax.
-                const falseCondition: FlowCondition = {
-                    ...trueCondition,
-                    flags: FlowFlags.FalseCondition,
-                }
-                const narrowedParamTypeFalse = getFlowTypeOfReference(param.name, initType, initType, func, falseCondition);
-                // It's safe to infer a type guard if:
-                // narrowedParamTypeFalse = Exclude<initType, narrowedParamTypeTrue>
-                // what's the difference between a subtype and assignable relationship?
-                // XXX this isn't the same as Exclude<U, T> for boolean types.
-                const candidateFalse = filterType(initType, t => !isTypeSubtypeOf(t, narrowedParamTypeTrue));
-                const canInferGuard = isTypeIdenticalTo(candidateFalse, narrowedParamTypeFalse);
-                if (canInferGuard) {
-                    return [i, narrowedParamTypeTrue];
-                }
+        function checkIfExpressionRefinesParameter(expr: Expression, param: ParameterDeclaration, initType: Type): Type | undefined {
+            const antecedent = (expr as Expression & {flowNode?: FlowNode}).flowNode ?? { flags: FlowFlags.Start };
+            const trueCondition: FlowCondition = {
+                flags: FlowFlags.TrueCondition,
+                node: expr,
+                antecedent,
+            };
+
+            const narrowedParamTypeTrue = getFlowTypeOfReference(param.name, initType, initType, func, trueCondition);
+            if (narrowedParamTypeTrue === initType) return undefined;
+
+            // The semantics of "x is T" are that x is T if and only if it returns true.
+            // In other words, if it returns false then x is not T.
+            // However, TS may not be able to represent "not T", in which case we can be more lax.
+            const falseCondition: FlowCondition = {
+                ...trueCondition,
+                flags: FlowFlags.FalseCondition,
+            }
+            const narrowedParamTypeFalse = getFlowTypeOfReference(param.name, initType, initType, func, falseCondition);
+            // It's safe to infer a type guard if:
+            // narrowedParamTypeFalse = Exclude<initType, narrowedParamTypeTrue>
+            // what's the difference between a subtype and assignable relationship?
+            // XXX this isn't the same as Exclude<U, T> for boolean types.
+            const candidateFalse = filterType(initType, t => !isTypeSubtypeOf(t, narrowedParamTypeTrue));
+            const canInferGuard = isTypeIdenticalTo(candidateFalse, narrowedParamTypeFalse);
+            if (canInferGuard) {
+                return narrowedParamTypeTrue;
             }
         }
     }
