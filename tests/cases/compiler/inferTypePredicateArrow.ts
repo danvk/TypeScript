@@ -100,3 +100,17 @@ function irrelevantIsNumber(x: string | number) {
 	x = Math.random() < 0.5 ? "string" : 123;
   return typeof x === 'string';
 }
+
+// We shouldn't infer a type guard for either param because of the negative case.
+function areBothNums(x: string|number, y: string|number) {
+  return typeof x === 'number' && typeof y === 'number';
+}
+
+// It would be valid to infer a type guard for this function, but it would require some
+// unification across the two return statements.
+function doubleReturn(x: string|number) {
+  if (typeof x === 'string') {
+    return true;
+  }
+  return false;
+}
