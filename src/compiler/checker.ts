@@ -37385,10 +37385,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             return undefined;
         }
 
-        let hasNonBooleanReturn = false;
-        let hasNonNarrowingReturn = false;
-        const aggregatedPredicates: [number, Type][] = [];
-
         let singularReturn: Expression | undefined;
         if (func.body && func.body.kind !== SyntaxKind.Block) {
             singularReturn = func.body; // arrow function
@@ -37407,26 +37403,23 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 return;
             }
         }
-        if (checkIfExpressionRefinesParams(singularReturn)) {
-            return;
-        }
 
-        if (!hasNonBooleanReturn && !hasNonNarrowingReturn && aggregatedPredicates.length === 1) {
-            const [i, type] = aggregatedPredicates[0];
+        const predicate = checkIfExpressionRefinesParams(singularReturn);
+        if (predicate) {
+            const [i, type] = predicate;
             const param = func.parameters[i];
-            if (param.name.kind === SyntaxKind.Identifier) {
+            if (isIdentifier(param.name)) {
                 // TODO: is there an alternative to the "as string" here? (It's __String)
                 return createTypePredicate(TypePredicateKind.Identifier, param.name.escapedText as string, i, type);
             }
         }
         return;
 
-        function checkIfExpressionRefinesParams(expr: Expression) {
+        function checkIfExpressionRefinesParams(expr: Expression): [number, Type] | undefined {
             expr = skipParentheses(expr, /*excludeJSDocTypeAssertions*/ true);
             const type = checkExpressionCached(expr, CheckMode.TypeOnly);
             if (type !== booleanType || !func.body) {
-                hasNonBooleanReturn = true;
-                return true;
+                return;
             }
             for (const [i, param] of func.parameters.entries()) {
                 const initType = getSymbolLinks(param.symbol).type;
@@ -37443,7 +37436,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     antecedent,
                 };
 
-                // TODO: do this once per function, not once per return statement.
                 const paramId = getIdentifierForParam(param);
                 if (paramId) {
                     const narrowedParamTypeTrue = getFlowTypeOfReference(paramId, initType, initType, func, trueCondition);
@@ -37464,11 +37456,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         const canInferGuard = isTypeIdenticalTo(candidateFalse, narrowedParamTypeFalse);
                         // console.log(canInferGuard);
                         if (canInferGuard) {
-                            aggregatedPredicates.push([i, narrowedParamTypeTrue]);
+                            return [i, narrowedParamTypeTrue];
                         }
-                    } else {
-                        hasNonNarrowingReturn = true;
-                        return true;
                     }
                 }
             }
