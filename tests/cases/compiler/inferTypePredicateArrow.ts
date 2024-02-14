@@ -22,6 +22,16 @@ const evenSquaresNonNull: number[] =
     .map(x => x % 2 === 0 ? x * x : null)
     .filter(x => x !== null);
 
+function isNonNull(x: number | null) {
+  return x !== null;
+}
+
+// factoring out a boolean works thanks to aliased discriminants
+function isNonNullVar(x: number | null) {
+  const ok = x !== null;
+  return ok;
+}
+
 // Type guards can flow between functions
 const myGuard = (o: string | undefined): o is string => !!o;
 const mySecondGuard = (o: string | undefined) => myGuard(o);

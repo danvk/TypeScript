@@ -135,6 +135,29 @@ const evenSquaresNonNull: number[] =
 >x !== null : boolean
 >x : number | null
 
+function isNonNull(x: number | null) {
+>isNonNull : (x: number | null) => x is number
+>x : number | null
+
+  return x !== null;
+>x !== null : boolean
+>x : number | null
+}
+
+// factoring out a boolean works thanks to aliased discriminants
+function isNonNullVar(x: number | null) {
+>isNonNullVar : (x: number | null) => x is number
+>x : number | null
+
+  const ok = x !== null;
+>ok : boolean
+>x !== null : boolean
+>x : number | null
+
+  return ok;
+>ok : boolean
+}
+
 // Type guards can flow between functions
 const myGuard = (o: string | undefined): o is string => !!o;
 >myGuard : (o: string | undefined) => o is string

@@ -2,11 +2,11 @@ inferTypePredicateArrow.ts(6,7): error TS2322: Type '(number | null)[]' is not a
   Type 'number | null' is not assignable to type 'number'.
     Type 'null' is not assignable to type 'number'.
 inferTypePredicateArrow.ts(14,7): error TS2322: Type '(number | null)[]' is not assignable to type 'number[]'.
-inferTypePredicateArrow.ts(36,17): error TS18048: 'arr' is possibly 'undefined'.
-inferTypePredicateArrow.ts(39,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+inferTypePredicateArrow.ts(46,17): error TS18048: 'arr' is possibly 'undefined'.
+inferTypePredicateArrow.ts(49,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-inferTypePredicateArrow.ts(61,8): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
-inferTypePredicateArrow.ts(83,46): error TS2345: Argument of type '(x: string | number) => boolean' is not assignable to parameter of type '(x: string | number) => x is string | number'.
+inferTypePredicateArrow.ts(71,8): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+inferTypePredicateArrow.ts(93,46): error TS2345: Argument of type '(x: string | number) => boolean' is not assignable to parameter of type '(x: string | number) => x is string | number'.
   Signature '(x: string | number): boolean' must be a type predicate.
 
 
@@ -39,6 +39,16 @@ inferTypePredicateArrow.ts(83,46): error TS2345: Argument of type '(x: string | 
         [1, 2, 3, 4]
         .map(x => x % 2 === 0 ? x * x : null)
         .filter(x => x !== null);
+    
+    function isNonNull(x: number | null) {
+      return x !== null;
+    }
+    
+    // factoring out a boolean works thanks to aliased discriminants
+    function isNonNullVar(x: number | null) {
+      const ok = x !== null;
+      return ok;
+    }
     
     // Type guards can flow between functions
     const myGuard = (o: string | undefined): o is string => !!o;

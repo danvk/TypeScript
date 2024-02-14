@@ -24,6 +24,16 @@ const evenSquaresNonNull: number[] =
     .map(x => x % 2 === 0 ? x * x : null)
     .filter(x => x !== null);
 
+function isNonNull(x: number | null) {
+  return x !== null;
+}
+
+// factoring out a boolean works thanks to aliased discriminants
+function isNonNullVar(x: number | null) {
+  const ok = x !== null;
+  return ok;
+}
+
 // Type guards can flow between functions
 const myGuard = (o: string | undefined): o is string => !!o;
 const mySecondGuard = (o: string | undefined) => myGuard(o);
@@ -141,6 +151,14 @@ var evenSquares = [1, 2, 3, 4]
 var evenSquaresNonNull = [1, 2, 3, 4]
     .map(function (x) { return x % 2 === 0 ? x * x : null; })
     .filter(function (x) { return x !== null; });
+function isNonNull(x) {
+    return x !== null;
+}
+// factoring out a boolean works thanks to aliased discriminants
+function isNonNullVar(x) {
+    var ok = x !== null;
+    return ok;
+}
 // Type guards can flow between functions
 var myGuard = function (o) { return !!o; };
 var mySecondGuard = function (o) { return myGuard(o); };
