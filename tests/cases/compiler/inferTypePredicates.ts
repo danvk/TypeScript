@@ -132,3 +132,7 @@ function doubleReturn(x: string|number) {
 function guardsOneButNotOthers(a: string|number, b: string|number, c: string|number) {
   return typeof b === 'string';
 }
+
+function dunderguard(__x: number | string) {
+  return typeof __x  === 'string';
+}
