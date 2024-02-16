@@ -37379,7 +37379,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function getTypePredicateFromBody(func: FunctionLikeDeclaration, _sig: Signature): TypePredicate | undefined {
-        // XXX can we check for a resolved return type here?
         const functionFlags = getFunctionFlags(func);
         if (functionFlags !== FunctionFlags.Normal) return undefined;
 
