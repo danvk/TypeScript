@@ -183,3 +183,17 @@ if (inf.isNumber(numOrStr)) {
 } else {
   let t: string = numOrStr; // should ok
 }
+
+// Type predicates are not inferred on "this"
+class C1 {
+  isC2() {
+    return this instanceof C2;
+  }
+}
+class C2 extends C1 {
+  z = 0;
+}
+declare let c: C1;
+if (c.isC2()) {
+  let c2: C2 = c; // should error
+}
