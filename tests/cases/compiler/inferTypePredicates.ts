@@ -32,6 +32,10 @@ function isNonNullVar(x: number | null) {
   return ok;
 }
 
+function isNonNullGeneric<T>(x: T) {
+  return x !== null;
+}
+
 // Type guards can flow between functions
 const myGuard = (o: string | undefined): o is string => !!o;
 const mySecondGuard = (o: string | undefined) => myGuard(o);
