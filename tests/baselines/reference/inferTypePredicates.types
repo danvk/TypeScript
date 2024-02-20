@@ -708,3 +708,38 @@ if (inf.isNumber(numOrStr)) {
 >numOrStr : string
 }
 
+// Type predicates are not inferred on "this"
+class C1 {
+>C1 : C1
+
+  isC2() {
+>isC2 : () => boolean
+
+    return this instanceof C2;
+>this instanceof C2 : boolean
+>this : this
+>C2 : typeof C2
+  }
+}
+class C2 extends C1 {
+>C2 : C2
+>C1 : C1
+
+  z = 0;
+>z : number
+>0 : 0
+}
+declare let c: C1;
+>c : C1
+
+if (c.isC2()) {
+>c.isC2() : boolean
+>c.isC2 : () => boolean
+>c : C1
+>isC2 : () => boolean
+
+  let c2: C2 = c; // should error
+>c2 : C2
+>c : C1
+}
+

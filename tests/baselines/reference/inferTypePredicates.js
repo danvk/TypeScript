@@ -186,9 +186,38 @@ if (inf.isNumber(numOrStr)) {
   let t: string = numOrStr; // should ok
 }
 
+// Type predicates are not inferred on "this"
+class C1 {
+  isC2() {
+    return this instanceof C2;
+  }
+}
+class C2 extends C1 {
+  z = 0;
+}
+declare let c: C1;
+if (c.isC2()) {
+  let c2: C2 = c; // should error
+}
+
 
 //// [inferTypePredicates.js]
 // https://github.com/microsoft/TypeScript/issues/16069
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var numsOrNull = [1, 2, 3, 4, null];
 var filteredNumsTruthy = numsOrNull.filter(function (x) { return !!x; }); // should error
 var filteredNumsNonNullish = numsOrNull.filter(function (x) { return x !== null; }); // should ok
@@ -329,4 +358,25 @@ if (inf.isNumber(numOrStr)) {
 }
 else {
     var t = numOrStr; // should ok
+}
+// Type predicates are not inferred on "this"
+var C1 = /** @class */ (function () {
+    function C1() {
+    }
+    C1.prototype.isC2 = function () {
+        return this instanceof C2;
+    };
+    return C1;
+}());
+var C2 = /** @class */ (function (_super) {
+    __extends(C2, _super);
+    function C2() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.z = 0;
+        return _this;
+    }
+    return C2;
+}(C1));
+if (c.isC2()) {
+    var c2 = c; // should error
 }

@@ -538,3 +538,37 @@ if (inf.isNumber(numOrStr)) {
 >numOrStr : Symbol(numOrStr, Decl(inferTypePredicates.ts, 177, 11))
 }
 
+// Type predicates are not inferred on "this"
+class C1 {
+>C1 : Symbol(C1, Decl(inferTypePredicates.ts, 183, 1))
+
+  isC2() {
+>isC2 : Symbol(C1.isC2, Decl(inferTypePredicates.ts, 186, 10))
+
+    return this instanceof C2;
+>this : Symbol(C1, Decl(inferTypePredicates.ts, 183, 1))
+>C2 : Symbol(C2, Decl(inferTypePredicates.ts, 190, 1))
+  }
+}
+class C2 extends C1 {
+>C2 : Symbol(C2, Decl(inferTypePredicates.ts, 190, 1))
+>C1 : Symbol(C1, Decl(inferTypePredicates.ts, 183, 1))
+
+  z = 0;
+>z : Symbol(C2.z, Decl(inferTypePredicates.ts, 191, 21))
+}
+declare let c: C1;
+>c : Symbol(c, Decl(inferTypePredicates.ts, 194, 11))
+>C1 : Symbol(C1, Decl(inferTypePredicates.ts, 183, 1))
+
+if (c.isC2()) {
+>c.isC2 : Symbol(C1.isC2, Decl(inferTypePredicates.ts, 186, 10))
+>c : Symbol(c, Decl(inferTypePredicates.ts, 194, 11))
+>isC2 : Symbol(C1.isC2, Decl(inferTypePredicates.ts, 186, 10))
+
+  let c2: C2 = c; // should error
+>c2 : Symbol(c2, Decl(inferTypePredicates.ts, 196, 5))
+>C2 : Symbol(C2, Decl(inferTypePredicates.ts, 190, 1))
+>c : Symbol(c, Decl(inferTypePredicates.ts, 194, 11))
+}
+

@@ -13,9 +13,10 @@ inferTypePredicates.ts(105,7): error TS2322: Type 'string | number' is not assig
   Type 'number' is not assignable to type 'string'.
 inferTypePredicates.ts(107,7): error TS2322: Type 'string | number' is not assignable to type 'number'.
   Type 'string' is not assignable to type 'number'.
+inferTypePredicates.ts(197,7): error TS2741: Property 'z' is missing in type 'C1' but required in type 'C2'.
 
 
-==== inferTypePredicates.ts (9 errors) ====
+==== inferTypePredicates.ts (10 errors) ====
     // https://github.com/microsoft/TypeScript/issues/16069
     
     const numsOrNull = [1, 2, 3, 4, null];
@@ -223,5 +224,22 @@ inferTypePredicates.ts(107,7): error TS2322: Type 'string | number' is not assig
       let t: number = numOrStr; // should ok
     } else {
       let t: string = numOrStr; // should ok
+    }
+    
+    // Type predicates are not inferred on "this"
+    class C1 {
+      isC2() {
+        return this instanceof C2;
+      }
+    }
+    class C2 extends C1 {
+      z = 0;
+    }
+    declare let c: C1;
+    if (c.isC2()) {
+      let c2: C2 = c; // should error
+          ~~
+!!! error TS2741: Property 'z' is missing in type 'C1' but required in type 'C2'.
+!!! related TS2728 inferTypePredicates.ts:193:3: 'z' is declared here.
     }
     
