@@ -6,7 +6,7 @@
 const numsOrNull = [1, 2, 3, 4, null];
 >numsOrNull : Symbol(numsOrNull, Decl(inferTypePredicates.ts, 2, 5))
 
-const filteredNumsTruthy: number[] = numsOrNull.filter(x => !!x); // should error
+const filteredNumsTruthy: number[] = numsOrNull.filter(x => !!x);  // should error
 >filteredNumsTruthy : Symbol(filteredNumsTruthy, Decl(inferTypePredicates.ts, 3, 5))
 >numsOrNull.filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
 >numsOrNull : Symbol(numsOrNull, Decl(inferTypePredicates.ts, 2, 5))
@@ -14,7 +14,7 @@ const filteredNumsTruthy: number[] = numsOrNull.filter(x => !!x); // should erro
 >x : Symbol(x, Decl(inferTypePredicates.ts, 3, 55))
 >x : Symbol(x, Decl(inferTypePredicates.ts, 3, 55))
 
-const filteredNumsNonNullish: number[] = numsOrNull.filter(x => x !== null); // should ok
+const filteredNumsNonNullish: number[] = numsOrNull.filter(x => x !== null);  // should ok
 >filteredNumsNonNullish : Symbol(filteredNumsNonNullish, Decl(inferTypePredicates.ts, 4, 5))
 >numsOrNull.filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
 >numsOrNull : Symbol(numsOrNull, Decl(inferTypePredicates.ts, 2, 5))
@@ -22,7 +22,7 @@ const filteredNumsNonNullish: number[] = numsOrNull.filter(x => x !== null); // 
 >x : Symbol(x, Decl(inferTypePredicates.ts, 4, 59))
 >x : Symbol(x, Decl(inferTypePredicates.ts, 4, 59))
 
-const evenSquaresInline: number[] = // should error
+const evenSquaresInline: number[] =  // should error
 >evenSquaresInline : Symbol(evenSquaresInline, Decl(inferTypePredicates.ts, 6, 5))
 
     [1, 2, 3, 4]
@@ -219,12 +219,12 @@ const result2 = myArray
 >arr : Symbol(arr, Decl(inferTypePredicates.ts, 59, 10))
 >length : Symbol(Array.length, Decl(lib.es5.d.ts, --, --))
 
-  .map((arr) => arr // should ok
+  .map((arr) => arr  // should ok
 >map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
 >arr : Symbol(arr, Decl(inferTypePredicates.ts, 60, 8))
->arr // should ok    .filter((obj) => obj)    // inferring a guard here would require https://github.com/microsoft/TypeScript/issues/42384    .filter(obj => !!obj.data)    .map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
->arr // should ok    .filter((obj) => obj)    // inferring a guard here would require https://github.com/microsoft/TypeScript/issues/42384    .filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
->arr // should ok    .filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>arr  // should ok    .filter((obj) => obj)    // inferring a guard here would require https://github.com/microsoft/TypeScript/issues/42384    .filter(obj => !!obj.data)    .map : Symbol(Array.map, Decl(lib.es5.d.ts, --, --))
+>arr  // should ok    .filter((obj) => obj)    // inferring a guard here would require https://github.com/microsoft/TypeScript/issues/42384    .filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>arr  // should ok    .filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
 >arr : Symbol(arr, Decl(inferTypePredicates.ts, 60, 8))
 
     .filter((obj) => obj)
@@ -272,191 +272,213 @@ const list: (Foo | Bar)[] = [];
 >Foo : Symbol(Foo, Decl(inferTypePredicates.ts, 65, 4))
 >Bar : Symbol(Bar, Decl(inferTypePredicates.ts, 70, 1))
 
-const resultBar: Bar[] = list.filter((value) => 'bar' in value); // should ok
->resultBar : Symbol(resultBar, Decl(inferTypePredicates.ts, 76, 5))
+const resultBars: Bar[] = list.filter((value) => 'bar' in value);  // should ok
+>resultBars : Symbol(resultBars, Decl(inferTypePredicates.ts, 76, 5))
 >Bar : Symbol(Bar, Decl(inferTypePredicates.ts, 70, 1))
 >list.filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
 >list : Symbol(list, Decl(inferTypePredicates.ts, 75, 5))
 >filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
->value : Symbol(value, Decl(inferTypePredicates.ts, 76, 38))
->value : Symbol(value, Decl(inferTypePredicates.ts, 76, 38))
+>value : Symbol(value, Decl(inferTypePredicates.ts, 76, 39))
+>value : Symbol(value, Decl(inferTypePredicates.ts, 76, 39))
+
+function isBarNonNull(x: Foo | Bar | null) {
+>isBarNonNull : Symbol(isBarNonNull, Decl(inferTypePredicates.ts, 76, 65))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 78, 22))
+>Foo : Symbol(Foo, Decl(inferTypePredicates.ts, 65, 4))
+>Bar : Symbol(Bar, Decl(inferTypePredicates.ts, 70, 1))
+
+  return ('bar' in x!);
+>x : Symbol(x, Decl(inferTypePredicates.ts, 78, 22))
+}
+const fooOrBar = list[0];
+>fooOrBar : Symbol(fooOrBar, Decl(inferTypePredicates.ts, 81, 5))
+>list : Symbol(list, Decl(inferTypePredicates.ts, 75, 5))
+
+if (isBarNonNull(fooOrBar)) {
+>isBarNonNull : Symbol(isBarNonNull, Decl(inferTypePredicates.ts, 76, 65))
+>fooOrBar : Symbol(fooOrBar, Decl(inferTypePredicates.ts, 81, 5))
+
+  const t: Bar = fooOrBar;  // should ok
+>t : Symbol(t, Decl(inferTypePredicates.ts, 83, 7))
+>Bar : Symbol(Bar, Decl(inferTypePredicates.ts, 70, 1))
+>fooOrBar : Symbol(fooOrBar, Decl(inferTypePredicates.ts, 81, 5))
+}
 
 // https://github.com/microsoft/TypeScript/issues/38390#issuecomment-626019466
 // Ryan's example (currently legal):
 const a = [1, "foo", 2, "bar"].filter(x => typeof x === "string");
->a : Symbol(a, Decl(inferTypePredicates.ts, 80, 5))
+>a : Symbol(a, Decl(inferTypePredicates.ts, 88, 5))
 >[1, "foo", 2, "bar"].filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
 >filter : Symbol(Array.filter, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
->x : Symbol(x, Decl(inferTypePredicates.ts, 80, 38))
->x : Symbol(x, Decl(inferTypePredicates.ts, 80, 38))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 88, 38))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 88, 38))
 
 a.push(10);
 >a.push : Symbol(Array.push, Decl(lib.es5.d.ts, --, --))
->a : Symbol(a, Decl(inferTypePredicates.ts, 80, 5))
+>a : Symbol(a, Decl(inferTypePredicates.ts, 88, 5))
 >push : Symbol(Array.push, Decl(lib.es5.d.ts, --, --))
 
 // Defer to explicit type guards, even when they're incorrect.
 function backwardsGuard(x: number|string): x is number {
->backwardsGuard : Symbol(backwardsGuard, Decl(inferTypePredicates.ts, 81, 11))
->x : Symbol(x, Decl(inferTypePredicates.ts, 84, 24))
->x : Symbol(x, Decl(inferTypePredicates.ts, 84, 24))
+>backwardsGuard : Symbol(backwardsGuard, Decl(inferTypePredicates.ts, 89, 11))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 92, 24))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 92, 24))
 
   return typeof x === 'string';
->x : Symbol(x, Decl(inferTypePredicates.ts, 84, 24))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 92, 24))
 }
 
 // Partition tests. The "false" case matters.
 function isString(x: string | number) {
->isString : Symbol(isString, Decl(inferTypePredicates.ts, 86, 1))
->x : Symbol(x, Decl(inferTypePredicates.ts, 89, 18))
+>isString : Symbol(isString, Decl(inferTypePredicates.ts, 94, 1))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 97, 18))
 
   return typeof x === 'string';
->x : Symbol(x, Decl(inferTypePredicates.ts, 89, 18))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 97, 18))
 }
 
 declare let strOrNum: string | number;
->strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 93, 11))
+>strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 101, 11))
 
 if (isString(strOrNum)) {
->isString : Symbol(isString, Decl(inferTypePredicates.ts, 86, 1))
->strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 93, 11))
+>isString : Symbol(isString, Decl(inferTypePredicates.ts, 94, 1))
+>strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 101, 11))
 
-  let t: string = strOrNum; // should ok
->t : Symbol(t, Decl(inferTypePredicates.ts, 95, 5))
->strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 93, 11))
+  let t: string = strOrNum;  // should ok
+>t : Symbol(t, Decl(inferTypePredicates.ts, 103, 5))
+>strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 101, 11))
 
 } else {
-  let t: number = strOrNum; // should ok
->t : Symbol(t, Decl(inferTypePredicates.ts, 97, 5))
->strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 93, 11))
+  let t: number = strOrNum;  // should ok
+>t : Symbol(t, Decl(inferTypePredicates.ts, 105, 5))
+>strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 101, 11))
 }
 
 function flakyIsString(x: string | number) {
->flakyIsString : Symbol(flakyIsString, Decl(inferTypePredicates.ts, 98, 1))
->x : Symbol(x, Decl(inferTypePredicates.ts, 100, 23))
+>flakyIsString : Symbol(flakyIsString, Decl(inferTypePredicates.ts, 106, 1))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 108, 23))
 
   return typeof x === 'string' && Math.random() > 0.5;
->x : Symbol(x, Decl(inferTypePredicates.ts, 100, 23))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 108, 23))
 >Math.random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
 >Math : Symbol(Math, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
 >random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
 }
 if (flakyIsString(strOrNum)) {
->flakyIsString : Symbol(flakyIsString, Decl(inferTypePredicates.ts, 98, 1))
->strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 93, 11))
+>flakyIsString : Symbol(flakyIsString, Decl(inferTypePredicates.ts, 106, 1))
+>strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 101, 11))
 
-  let t: string = strOrNum; // should error
->t : Symbol(t, Decl(inferTypePredicates.ts, 104, 5))
->strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 93, 11))
+  let t: string = strOrNum;  // should error
+>t : Symbol(t, Decl(inferTypePredicates.ts, 112, 5))
+>strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 101, 11))
 
 } else {
   let t: number = strOrNum;  // should error
->t : Symbol(t, Decl(inferTypePredicates.ts, 106, 5))
->strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 93, 11))
+>t : Symbol(t, Decl(inferTypePredicates.ts, 114, 5))
+>strOrNum : Symbol(strOrNum, Decl(inferTypePredicates.ts, 101, 11))
 }
 
 function isDate(x: object): x is Date {
->isDate : Symbol(isDate, Decl(inferTypePredicates.ts, 107, 1))
->x : Symbol(x, Decl(inferTypePredicates.ts, 109, 16))
->x : Symbol(x, Decl(inferTypePredicates.ts, 109, 16))
+>isDate : Symbol(isDate, Decl(inferTypePredicates.ts, 115, 1))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 117, 16))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 117, 16))
 >Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --))
 
   return x instanceof Date;
->x : Symbol(x, Decl(inferTypePredicates.ts, 109, 16))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 117, 16))
 >Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --))
 }
 function flakyIsDate(x: object): x is Date {
->flakyIsDate : Symbol(flakyIsDate, Decl(inferTypePredicates.ts, 111, 1))
->x : Symbol(x, Decl(inferTypePredicates.ts, 112, 21))
->x : Symbol(x, Decl(inferTypePredicates.ts, 112, 21))
+>flakyIsDate : Symbol(flakyIsDate, Decl(inferTypePredicates.ts, 119, 1))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 120, 21))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 120, 21))
 >Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --))
 
   return x instanceof Date;
->x : Symbol(x, Decl(inferTypePredicates.ts, 112, 21))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 120, 21))
 >Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --))
 }
 
 declare let maybeDate: object;
->maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 116, 11))
+>maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 124, 11))
 
 if (isDate(maybeDate)) {
->isDate : Symbol(isDate, Decl(inferTypePredicates.ts, 107, 1))
->maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 116, 11))
+>isDate : Symbol(isDate, Decl(inferTypePredicates.ts, 115, 1))
+>maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 124, 11))
 
-  let t: Date = maybeDate; // should ok
->t : Symbol(t, Decl(inferTypePredicates.ts, 118, 5))
+  let t: Date = maybeDate;  // should ok
+>t : Symbol(t, Decl(inferTypePredicates.ts, 126, 5))
 >Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --))
->maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 116, 11))
+>maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 124, 11))
 
 } else {
   let t: object = maybeDate;  // should ok
->t : Symbol(t, Decl(inferTypePredicates.ts, 120, 5))
->maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 116, 11))
+>t : Symbol(t, Decl(inferTypePredicates.ts, 128, 5))
+>maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 124, 11))
 }
 
 if (flakyIsDate(maybeDate)) {
->flakyIsDate : Symbol(flakyIsDate, Decl(inferTypePredicates.ts, 111, 1))
->maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 116, 11))
+>flakyIsDate : Symbol(flakyIsDate, Decl(inferTypePredicates.ts, 119, 1))
+>maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 124, 11))
 
-  let t: Date = maybeDate; // should ok
->t : Symbol(t, Decl(inferTypePredicates.ts, 124, 5))
+  let t: Date = maybeDate;  // should ok
+>t : Symbol(t, Decl(inferTypePredicates.ts, 132, 5))
 >Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --))
->maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 116, 11))
+>maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 124, 11))
 
 } else {
   let t: object = maybeDate;  // should ok
->t : Symbol(t, Decl(inferTypePredicates.ts, 126, 5))
->maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 116, 11))
+>t : Symbol(t, Decl(inferTypePredicates.ts, 134, 5))
+>maybeDate : Symbol(maybeDate, Decl(inferTypePredicates.ts, 124, 11))
 }
 
 // This should not infer a type guard since the value on which we do the refinement
 // is not related to the original parameter.
 function irrelevantIsNumber(x: string | number) {
->irrelevantIsNumber : Symbol(irrelevantIsNumber, Decl(inferTypePredicates.ts, 127, 1))
->x : Symbol(x, Decl(inferTypePredicates.ts, 131, 28))
+>irrelevantIsNumber : Symbol(irrelevantIsNumber, Decl(inferTypePredicates.ts, 135, 1))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 139, 28))
 
 	x = Math.random() < 0.5 ? "string" : 123;
->x : Symbol(x, Decl(inferTypePredicates.ts, 131, 28))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 139, 28))
 >Math.random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
 >Math : Symbol(Math, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
 >random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
 
   return typeof x === 'string';
->x : Symbol(x, Decl(inferTypePredicates.ts, 131, 28))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 139, 28))
 }
 function irrelevantIsNumberDestructuring(x: string | number) {
->irrelevantIsNumberDestructuring : Symbol(irrelevantIsNumberDestructuring, Decl(inferTypePredicates.ts, 134, 1))
->x : Symbol(x, Decl(inferTypePredicates.ts, 135, 41))
+>irrelevantIsNumberDestructuring : Symbol(irrelevantIsNumberDestructuring, Decl(inferTypePredicates.ts, 142, 1))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 143, 41))
 
 	[x] = [Math.random() < 0.5 ? "string" : 123];
->x : Symbol(x, Decl(inferTypePredicates.ts, 135, 41))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 143, 41))
 >Math.random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
 >Math : Symbol(Math, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
 >random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
 
   return typeof x === 'string';
->x : Symbol(x, Decl(inferTypePredicates.ts, 135, 41))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 143, 41))
 }
 
-// We shouldn't infer a type guard for either param because of the negative case.
+// Cannot infer a type guard for either param because of the false case.
 function areBothNums(x: string|number, y: string|number) {
->areBothNums : Symbol(areBothNums, Decl(inferTypePredicates.ts, 138, 1))
->x : Symbol(x, Decl(inferTypePredicates.ts, 141, 21))
->y : Symbol(y, Decl(inferTypePredicates.ts, 141, 38))
+>areBothNums : Symbol(areBothNums, Decl(inferTypePredicates.ts, 146, 1))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 149, 21))
+>y : Symbol(y, Decl(inferTypePredicates.ts, 149, 38))
 
   return typeof x === 'number' && typeof y === 'number';
->x : Symbol(x, Decl(inferTypePredicates.ts, 141, 21))
->y : Symbol(y, Decl(inferTypePredicates.ts, 141, 38))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 149, 21))
+>y : Symbol(y, Decl(inferTypePredicates.ts, 149, 38))
 }
 
-// It would be valid to infer a type guard for this function, but it would require some
-// unification across the two return statements.
+// Could potentially infer a type guard here but it would require more bookkeeping.
 function doubleReturn(x: string|number) {
->doubleReturn : Symbol(doubleReturn, Decl(inferTypePredicates.ts, 143, 1))
->x : Symbol(x, Decl(inferTypePredicates.ts, 147, 22))
+>doubleReturn : Symbol(doubleReturn, Decl(inferTypePredicates.ts, 151, 1))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 154, 22))
 
   if (typeof x === 'string') {
->x : Symbol(x, Decl(inferTypePredicates.ts, 147, 22))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 154, 22))
 
     return true;
   }
@@ -464,111 +486,123 @@ function doubleReturn(x: string|number) {
 }
 
 function guardsOneButNotOthers(a: string|number, b: string|number, c: string|number) {
->guardsOneButNotOthers : Symbol(guardsOneButNotOthers, Decl(inferTypePredicates.ts, 152, 1))
->a : Symbol(a, Decl(inferTypePredicates.ts, 154, 31))
->b : Symbol(b, Decl(inferTypePredicates.ts, 154, 48))
->c : Symbol(c, Decl(inferTypePredicates.ts, 154, 66))
+>guardsOneButNotOthers : Symbol(guardsOneButNotOthers, Decl(inferTypePredicates.ts, 159, 1))
+>a : Symbol(a, Decl(inferTypePredicates.ts, 161, 31))
+>b : Symbol(b, Decl(inferTypePredicates.ts, 161, 48))
+>c : Symbol(c, Decl(inferTypePredicates.ts, 161, 66))
 
   return typeof b === 'string';
->b : Symbol(b, Decl(inferTypePredicates.ts, 154, 48))
+>b : Symbol(b, Decl(inferTypePredicates.ts, 161, 48))
 }
 
+// String escaping issue (please help!)
 function dunderguard(__x: number | string) {
->dunderguard : Symbol(dunderguard, Decl(inferTypePredicates.ts, 156, 1))
->__x : Symbol(__x, Decl(inferTypePredicates.ts, 158, 21))
+>dunderguard : Symbol(dunderguard, Decl(inferTypePredicates.ts, 163, 1))
+>__x : Symbol(__x, Decl(inferTypePredicates.ts, 166, 21))
 
   return typeof __x  === 'string';
->__x : Symbol(__x, Decl(inferTypePredicates.ts, 158, 21))
+>__x : Symbol(__x, Decl(inferTypePredicates.ts, 166, 21))
 }
 
 // could infer a type guard here but it doesn't seem that helpful.
 const booleanIdentity = (x: boolean) => x;
->booleanIdentity : Symbol(booleanIdentity, Decl(inferTypePredicates.ts, 163, 5))
->x : Symbol(x, Decl(inferTypePredicates.ts, 163, 25))
->x : Symbol(x, Decl(inferTypePredicates.ts, 163, 25))
+>booleanIdentity : Symbol(booleanIdentity, Decl(inferTypePredicates.ts, 171, 5))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 171, 25))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 171, 25))
 
-// can infer "x is number | true"; debateable whether that's helpful.
+// could infer "x is number | true" but don't; debateable whether that's helpful.
 const numOrBoolean = (x: number | boolean) => typeof x !== 'number' && x;
->numOrBoolean : Symbol(numOrBoolean, Decl(inferTypePredicates.ts, 166, 5))
->x : Symbol(x, Decl(inferTypePredicates.ts, 166, 22))
->x : Symbol(x, Decl(inferTypePredicates.ts, 166, 22))
->x : Symbol(x, Decl(inferTypePredicates.ts, 166, 22))
+>numOrBoolean : Symbol(numOrBoolean, Decl(inferTypePredicates.ts, 174, 5))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 174, 22))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 174, 22))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 174, 22))
 
 // inferred guards in methods
 interface NumberInferrer {
->NumberInferrer : Symbol(NumberInferrer, Decl(inferTypePredicates.ts, 166, 73))
+>NumberInferrer : Symbol(NumberInferrer, Decl(inferTypePredicates.ts, 174, 73))
 
   isNumber(x: number | string): x is number;
->isNumber : Symbol(NumberInferrer.isNumber, Decl(inferTypePredicates.ts, 169, 26))
->x : Symbol(x, Decl(inferTypePredicates.ts, 170, 11))
->x : Symbol(x, Decl(inferTypePredicates.ts, 170, 11))
+>isNumber : Symbol(NumberInferrer.isNumber, Decl(inferTypePredicates.ts, 177, 26))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 178, 11))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 178, 11))
 }
 class Inferrer implements NumberInferrer {
->Inferrer : Symbol(Inferrer, Decl(inferTypePredicates.ts, 171, 1))
->NumberInferrer : Symbol(NumberInferrer, Decl(inferTypePredicates.ts, 166, 73))
+>Inferrer : Symbol(Inferrer, Decl(inferTypePredicates.ts, 179, 1))
+>NumberInferrer : Symbol(NumberInferrer, Decl(inferTypePredicates.ts, 174, 73))
 
-  isNumber(x: number | string) { // should ok
->isNumber : Symbol(Inferrer.isNumber, Decl(inferTypePredicates.ts, 172, 42))
->x : Symbol(x, Decl(inferTypePredicates.ts, 173, 11))
+  isNumber(x: number | string) {  // should ok
+>isNumber : Symbol(Inferrer.isNumber, Decl(inferTypePredicates.ts, 180, 42))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 181, 11))
 
     return typeof x === 'number';
->x : Symbol(x, Decl(inferTypePredicates.ts, 173, 11))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 181, 11))
   }
 }
 declare let numOrStr: number | string;
->numOrStr : Symbol(numOrStr, Decl(inferTypePredicates.ts, 177, 11))
+>numOrStr : Symbol(numOrStr, Decl(inferTypePredicates.ts, 185, 11))
 
 const inf = new Inferrer();
->inf : Symbol(inf, Decl(inferTypePredicates.ts, 178, 5))
->Inferrer : Symbol(Inferrer, Decl(inferTypePredicates.ts, 171, 1))
+>inf : Symbol(inf, Decl(inferTypePredicates.ts, 186, 5))
+>Inferrer : Symbol(Inferrer, Decl(inferTypePredicates.ts, 179, 1))
 
 if (inf.isNumber(numOrStr)) {
->inf.isNumber : Symbol(Inferrer.isNumber, Decl(inferTypePredicates.ts, 172, 42))
->inf : Symbol(inf, Decl(inferTypePredicates.ts, 178, 5))
->isNumber : Symbol(Inferrer.isNumber, Decl(inferTypePredicates.ts, 172, 42))
->numOrStr : Symbol(numOrStr, Decl(inferTypePredicates.ts, 177, 11))
+>inf.isNumber : Symbol(Inferrer.isNumber, Decl(inferTypePredicates.ts, 180, 42))
+>inf : Symbol(inf, Decl(inferTypePredicates.ts, 186, 5))
+>isNumber : Symbol(Inferrer.isNumber, Decl(inferTypePredicates.ts, 180, 42))
+>numOrStr : Symbol(numOrStr, Decl(inferTypePredicates.ts, 185, 11))
 
-  let t: number = numOrStr; // should ok
->t : Symbol(t, Decl(inferTypePredicates.ts, 180, 5))
->numOrStr : Symbol(numOrStr, Decl(inferTypePredicates.ts, 177, 11))
+  let t: number = numOrStr;  // should ok
+>t : Symbol(t, Decl(inferTypePredicates.ts, 188, 5))
+>numOrStr : Symbol(numOrStr, Decl(inferTypePredicates.ts, 185, 11))
 
 } else {
-  let t: string = numOrStr; // should ok
->t : Symbol(t, Decl(inferTypePredicates.ts, 182, 5))
->numOrStr : Symbol(numOrStr, Decl(inferTypePredicates.ts, 177, 11))
+  let t: string = numOrStr;  // should ok
+>t : Symbol(t, Decl(inferTypePredicates.ts, 190, 5))
+>numOrStr : Symbol(numOrStr, Decl(inferTypePredicates.ts, 185, 11))
 }
 
 // Type predicates are not inferred on "this"
 class C1 {
->C1 : Symbol(C1, Decl(inferTypePredicates.ts, 183, 1))
+>C1 : Symbol(C1, Decl(inferTypePredicates.ts, 191, 1))
 
   isC2() {
->isC2 : Symbol(C1.isC2, Decl(inferTypePredicates.ts, 186, 10))
+>isC2 : Symbol(C1.isC2, Decl(inferTypePredicates.ts, 194, 10))
 
     return this instanceof C2;
->this : Symbol(C1, Decl(inferTypePredicates.ts, 183, 1))
->C2 : Symbol(C2, Decl(inferTypePredicates.ts, 190, 1))
+>this : Symbol(C1, Decl(inferTypePredicates.ts, 191, 1))
+>C2 : Symbol(C2, Decl(inferTypePredicates.ts, 198, 1))
   }
 }
 class C2 extends C1 {
->C2 : Symbol(C2, Decl(inferTypePredicates.ts, 190, 1))
->C1 : Symbol(C1, Decl(inferTypePredicates.ts, 183, 1))
+>C2 : Symbol(C2, Decl(inferTypePredicates.ts, 198, 1))
+>C1 : Symbol(C1, Decl(inferTypePredicates.ts, 191, 1))
 
   z = 0;
->z : Symbol(C2.z, Decl(inferTypePredicates.ts, 191, 21))
+>z : Symbol(C2.z, Decl(inferTypePredicates.ts, 199, 21))
 }
 declare let c: C1;
->c : Symbol(c, Decl(inferTypePredicates.ts, 194, 11))
->C1 : Symbol(C1, Decl(inferTypePredicates.ts, 183, 1))
+>c : Symbol(c, Decl(inferTypePredicates.ts, 202, 11))
+>C1 : Symbol(C1, Decl(inferTypePredicates.ts, 191, 1))
 
 if (c.isC2()) {
->c.isC2 : Symbol(C1.isC2, Decl(inferTypePredicates.ts, 186, 10))
->c : Symbol(c, Decl(inferTypePredicates.ts, 194, 11))
->isC2 : Symbol(C1.isC2, Decl(inferTypePredicates.ts, 186, 10))
+>c.isC2 : Symbol(C1.isC2, Decl(inferTypePredicates.ts, 194, 10))
+>c : Symbol(c, Decl(inferTypePredicates.ts, 202, 11))
+>isC2 : Symbol(C1.isC2, Decl(inferTypePredicates.ts, 194, 10))
 
-  let c2: C2 = c; // should error
->c2 : Symbol(c2, Decl(inferTypePredicates.ts, 196, 5))
->C2 : Symbol(C2, Decl(inferTypePredicates.ts, 190, 1))
->c : Symbol(c, Decl(inferTypePredicates.ts, 194, 11))
+  let c2: C2 = c;  // should error
+>c2 : Symbol(c2, Decl(inferTypePredicates.ts, 204, 5))
+>C2 : Symbol(C2, Decl(inferTypePredicates.ts, 198, 1))
+>c : Symbol(c, Decl(inferTypePredicates.ts, 202, 11))
+}
+
+function doNotRefineDestructuredParam({x, y}: {x: number | null, y: number}) {
+>doNotRefineDestructuredParam : Symbol(doNotRefineDestructuredParam, Decl(inferTypePredicates.ts, 205, 1))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 207, 39))
+>y : Symbol(y, Decl(inferTypePredicates.ts, 207, 41))
+>x : Symbol(x, Decl(inferTypePredicates.ts, 207, 47))
+>y : Symbol(y, Decl(inferTypePredicates.ts, 207, 64))
+
+  return typeof x === 'number';
+>x : Symbol(x, Decl(inferTypePredicates.ts, 207, 39))
 }
 

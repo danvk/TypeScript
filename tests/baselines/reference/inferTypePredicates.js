@@ -4,10 +4,10 @@
 // https://github.com/microsoft/TypeScript/issues/16069
 
 const numsOrNull = [1, 2, 3, 4, null];
-const filteredNumsTruthy: number[] = numsOrNull.filter(x => !!x); // should error
-const filteredNumsNonNullish: number[] = numsOrNull.filter(x => x !== null); // should ok
+const filteredNumsTruthy: number[] = numsOrNull.filter(x => !!x);  // should error
+const filteredNumsNonNullish: number[] = numsOrNull.filter(x => x !== null);  // should ok
 
-const evenSquaresInline: number[] = // should error
+const evenSquaresInline: number[] =  // should error
     [1, 2, 3, 4]
         .map(x => x % 2 === 0 ? x * x : null)
         .filter(x => !!x); // tests truthiness, not non-nullishness
@@ -61,7 +61,7 @@ const result2 = myArray
   .map((arr) => arr.list)
   .filter((arr) => !!arr)
   .filter(arr => arr.length)
-  .map((arr) => arr // should ok
+  .map((arr) => arr  // should ok
     .filter((obj) => obj)
     // inferring a guard here would require https://github.com/microsoft/TypeScript/issues/42384
     .filter(obj => !!obj.data)
@@ -77,7 +77,15 @@ type Bar = Foo & {
 }
 
 const list: (Foo | Bar)[] = [];
-const resultBar: Bar[] = list.filter((value) => 'bar' in value); // should ok
+const resultBars: Bar[] = list.filter((value) => 'bar' in value);  // should ok
+
+function isBarNonNull(x: Foo | Bar | null) {
+  return ('bar' in x!);
+}
+const fooOrBar = list[0];
+if (isBarNonNull(fooOrBar)) {
+  const t: Bar = fooOrBar;  // should ok
+}
 
 // https://github.com/microsoft/TypeScript/issues/38390#issuecomment-626019466
 // Ryan's example (currently legal):
@@ -96,16 +104,16 @@ function isString(x: string | number) {
 
 declare let strOrNum: string | number;
 if (isString(strOrNum)) {
-  let t: string = strOrNum; // should ok
+  let t: string = strOrNum;  // should ok
 } else {
-  let t: number = strOrNum; // should ok
+  let t: number = strOrNum;  // should ok
 }
 
 function flakyIsString(x: string | number) {
   return typeof x === 'string' && Math.random() > 0.5;
 }
 if (flakyIsString(strOrNum)) {
-  let t: string = strOrNum; // should error
+  let t: string = strOrNum;  // should error
 } else {
   let t: number = strOrNum;  // should error
 }
@@ -119,13 +127,13 @@ function flakyIsDate(x: object): x is Date {
 
 declare let maybeDate: object;
 if (isDate(maybeDate)) {
-  let t: Date = maybeDate; // should ok
+  let t: Date = maybeDate;  // should ok
 } else {
   let t: object = maybeDate;  // should ok
 }
 
 if (flakyIsDate(maybeDate)) {
-  let t: Date = maybeDate; // should ok
+  let t: Date = maybeDate;  // should ok
 } else {
   let t: object = maybeDate;  // should ok
 }
@@ -141,13 +149,12 @@ function irrelevantIsNumberDestructuring(x: string | number) {
   return typeof x === 'string';
 }
 
-// We shouldn't infer a type guard for either param because of the negative case.
+// Cannot infer a type guard for either param because of the false case.
 function areBothNums(x: string|number, y: string|number) {
   return typeof x === 'number' && typeof y === 'number';
 }
 
-// It would be valid to infer a type guard for this function, but it would require some
-// unification across the two return statements.
+// Could potentially infer a type guard here but it would require more bookkeeping.
 function doubleReturn(x: string|number) {
   if (typeof x === 'string') {
     return true;
@@ -159,6 +166,7 @@ function guardsOneButNotOthers(a: string|number, b: string|number, c: string|num
   return typeof b === 'string';
 }
 
+// String escaping issue (please help!)
 function dunderguard(__x: number | string) {
   return typeof __x  === 'string';
 }
@@ -166,7 +174,7 @@ function dunderguard(__x: number | string) {
 // could infer a type guard here but it doesn't seem that helpful.
 const booleanIdentity = (x: boolean) => x;
 
-// can infer "x is number | true"; debateable whether that's helpful.
+// could infer "x is number | true" but don't; debateable whether that's helpful.
 const numOrBoolean = (x: number | boolean) => typeof x !== 'number' && x;
 
 // inferred guards in methods
@@ -174,16 +182,16 @@ interface NumberInferrer {
   isNumber(x: number | string): x is number;
 }
 class Inferrer implements NumberInferrer {
-  isNumber(x: number | string) { // should ok
+  isNumber(x: number | string) {  // should ok
     return typeof x === 'number';
   }
 }
 declare let numOrStr: number | string;
 const inf = new Inferrer();
 if (inf.isNumber(numOrStr)) {
-  let t: number = numOrStr; // should ok
+  let t: number = numOrStr;  // should ok
 } else {
-  let t: string = numOrStr; // should ok
+  let t: string = numOrStr;  // should ok
 }
 
 // Type predicates are not inferred on "this"
@@ -197,7 +205,11 @@ class C2 extends C1 {
 }
 declare let c: C1;
 if (c.isC2()) {
-  let c2: C2 = c; // should error
+  let c2: C2 = c;  // should error
+}
+
+function doNotRefineDestructuredParam({x, y}: {x: number | null, y: number}) {
+  return typeof x === 'number';
 }
 
 
@@ -266,7 +278,14 @@ var result2 = myArray
     .filter(function (obj) { return !!obj.data; })
     .map(function (obj) { return JSON.parse(obj.data); }); });
 var list = [];
-var resultBar = list.filter(function (value) { return 'bar' in value; }); // should ok
+var resultBars = list.filter(function (value) { return 'bar' in value; }); // should ok
+function isBarNonNull(x) {
+    return ('bar' in x);
+}
+var fooOrBar = list[0];
+if (isBarNonNull(fooOrBar)) {
+    var t = fooOrBar; // should ok
+}
 // https://github.com/microsoft/TypeScript/issues/38390#issuecomment-626019466
 // Ryan's example (currently legal):
 var a = [1, "foo", 2, "bar"].filter(function (x) { return typeof x === "string"; });
@@ -322,12 +341,11 @@ function irrelevantIsNumberDestructuring(x) {
     x = [Math.random() < 0.5 ? "string" : 123][0];
     return typeof x === 'string';
 }
-// We shouldn't infer a type guard for either param because of the negative case.
+// Cannot infer a type guard for either param because of the false case.
 function areBothNums(x, y) {
     return typeof x === 'number' && typeof y === 'number';
 }
-// It would be valid to infer a type guard for this function, but it would require some
-// unification across the two return statements.
+// Could potentially infer a type guard here but it would require more bookkeeping.
 function doubleReturn(x) {
     if (typeof x === 'string') {
         return true;
@@ -337,12 +355,13 @@ function doubleReturn(x) {
 function guardsOneButNotOthers(a, b, c) {
     return typeof b === 'string';
 }
+// String escaping issue (please help!)
 function dunderguard(__x) {
     return typeof __x === 'string';
 }
 // could infer a type guard here but it doesn't seem that helpful.
 var booleanIdentity = function (x) { return x; };
-// can infer "x is number | true"; debateable whether that's helpful.
+// could infer "x is number | true" but don't; debateable whether that's helpful.
 var numOrBoolean = function (x) { return typeof x !== 'number' && x; };
 var Inferrer = /** @class */ (function () {
     function Inferrer() {
@@ -379,4 +398,8 @@ var C2 = /** @class */ (function (_super) {
 }(C1));
 if (c.isC2()) {
     var c2 = c; // should error
+}
+function doNotRefineDestructuredParam(_a) {
+    var x = _a.x, y = _a.y;
+    return typeof x === 'number';
 }

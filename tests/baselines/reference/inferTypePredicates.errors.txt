@@ -8,26 +8,26 @@ inferTypePredicates.ts(54,28): error TS2345: Argument of type 'string | undefine
   Type 'undefined' is not assignable to type 'string'.
 inferTypePredicates.ts(65,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-inferTypePredicates.ts(82,8): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
-inferTypePredicates.ts(105,7): error TS2322: Type 'string | number' is not assignable to type 'string'.
+inferTypePredicates.ts(90,8): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+inferTypePredicates.ts(113,7): error TS2322: Type 'string | number' is not assignable to type 'string'.
   Type 'number' is not assignable to type 'string'.
-inferTypePredicates.ts(107,7): error TS2322: Type 'string | number' is not assignable to type 'number'.
+inferTypePredicates.ts(115,7): error TS2322: Type 'string | number' is not assignable to type 'number'.
   Type 'string' is not assignable to type 'number'.
-inferTypePredicates.ts(197,7): error TS2741: Property 'z' is missing in type 'C1' but required in type 'C2'.
+inferTypePredicates.ts(205,7): error TS2741: Property 'z' is missing in type 'C1' but required in type 'C2'.
 
 
 ==== inferTypePredicates.ts (10 errors) ====
     // https://github.com/microsoft/TypeScript/issues/16069
     
     const numsOrNull = [1, 2, 3, 4, null];
-    const filteredNumsTruthy: number[] = numsOrNull.filter(x => !!x); // should error
+    const filteredNumsTruthy: number[] = numsOrNull.filter(x => !!x);  // should error
           ~~~~~~~~~~~~~~~~~~
 !!! error TS2322: Type '(number | null)[]' is not assignable to type 'number[]'.
 !!! error TS2322:   Type 'number | null' is not assignable to type 'number'.
 !!! error TS2322:     Type 'null' is not assignable to type 'number'.
-    const filteredNumsNonNullish: number[] = numsOrNull.filter(x => x !== null); // should ok
+    const filteredNumsNonNullish: number[] = numsOrNull.filter(x => x !== null);  // should ok
     
-    const evenSquaresInline: number[] = // should error
+    const evenSquaresInline: number[] =  // should error
           ~~~~~~~~~~~~~~~~~
 !!! error TS2322: Type '(number | null)[]' is not assignable to type 'number[]'.
         [1, 2, 3, 4]
@@ -90,7 +90,7 @@ inferTypePredicates.ts(197,7): error TS2741: Property 'z' is missing in type 'C1
       .map((arr) => arr.list)
       .filter((arr) => !!arr)
       .filter(arr => arr.length)
-      .map((arr) => arr // should ok
+      .map((arr) => arr  // should ok
         .filter((obj) => obj)
         // inferring a guard here would require https://github.com/microsoft/TypeScript/issues/42384
         .filter(obj => !!obj.data)
@@ -109,7 +109,15 @@ inferTypePredicates.ts(197,7): error TS2741: Property 'z' is missing in type 'C1
     }
     
     const list: (Foo | Bar)[] = [];
-    const resultBar: Bar[] = list.filter((value) => 'bar' in value); // should ok
+    const resultBars: Bar[] = list.filter((value) => 'bar' in value);  // should ok
+    
+    function isBarNonNull(x: Foo | Bar | null) {
+      return ('bar' in x!);
+    }
+    const fooOrBar = list[0];
+    if (isBarNonNull(fooOrBar)) {
+      const t: Bar = fooOrBar;  // should ok
+    }
     
     // https://github.com/microsoft/TypeScript/issues/38390#issuecomment-626019466
     // Ryan's example (currently legal):
@@ -130,16 +138,16 @@ inferTypePredicates.ts(197,7): error TS2741: Property 'z' is missing in type 'C1
     
     declare let strOrNum: string | number;
     if (isString(strOrNum)) {
-      let t: string = strOrNum; // should ok
+      let t: string = strOrNum;  // should ok
     } else {
-      let t: number = strOrNum; // should ok
+      let t: number = strOrNum;  // should ok
     }
     
     function flakyIsString(x: string | number) {
       return typeof x === 'string' && Math.random() > 0.5;
     }
     if (flakyIsString(strOrNum)) {
-      let t: string = strOrNum; // should error
+      let t: string = strOrNum;  // should error
           ~
 !!! error TS2322: Type 'string | number' is not assignable to type 'string'.
 !!! error TS2322:   Type 'number' is not assignable to type 'string'.
@@ -159,13 +167,13 @@ inferTypePredicates.ts(197,7): error TS2741: Property 'z' is missing in type 'C1
     
     declare let maybeDate: object;
     if (isDate(maybeDate)) {
-      let t: Date = maybeDate; // should ok
+      let t: Date = maybeDate;  // should ok
     } else {
       let t: object = maybeDate;  // should ok
     }
     
     if (flakyIsDate(maybeDate)) {
-      let t: Date = maybeDate; // should ok
+      let t: Date = maybeDate;  // should ok
     } else {
       let t: object = maybeDate;  // should ok
     }
@@ -181,13 +189,12 @@ inferTypePredicates.ts(197,7): error TS2741: Property 'z' is missing in type 'C1
       return typeof x === 'string';
     }
     
-    // We shouldn't infer a type guard for either param because of the negative case.
+    // Cannot infer a type guard for either param because of the false case.
     function areBothNums(x: string|number, y: string|number) {
       return typeof x === 'number' && typeof y === 'number';
     }
     
-    // It would be valid to infer a type guard for this function, but it would require some
-    // unification across the two return statements.
+    // Could potentially infer a type guard here but it would require more bookkeeping.
     function doubleReturn(x: string|number) {
       if (typeof x === 'string') {
         return true;
@@ -199,6 +206,7 @@ inferTypePredicates.ts(197,7): error TS2741: Property 'z' is missing in type 'C1
       return typeof b === 'string';
     }
     
+    // String escaping issue (please help!)
     function dunderguard(__x: number | string) {
       return typeof __x  === 'string';
     }
@@ -206,7 +214,7 @@ inferTypePredicates.ts(197,7): error TS2741: Property 'z' is missing in type 'C1
     // could infer a type guard here but it doesn't seem that helpful.
     const booleanIdentity = (x: boolean) => x;
     
-    // can infer "x is number | true"; debateable whether that's helpful.
+    // could infer "x is number | true" but don't; debateable whether that's helpful.
     const numOrBoolean = (x: number | boolean) => typeof x !== 'number' && x;
     
     // inferred guards in methods
@@ -214,16 +222,16 @@ inferTypePredicates.ts(197,7): error TS2741: Property 'z' is missing in type 'C1
       isNumber(x: number | string): x is number;
     }
     class Inferrer implements NumberInferrer {
-      isNumber(x: number | string) { // should ok
+      isNumber(x: number | string) {  // should ok
         return typeof x === 'number';
       }
     }
     declare let numOrStr: number | string;
     const inf = new Inferrer();
     if (inf.isNumber(numOrStr)) {
-      let t: number = numOrStr; // should ok
+      let t: number = numOrStr;  // should ok
     } else {
-      let t: string = numOrStr; // should ok
+      let t: string = numOrStr;  // should ok
     }
     
     // Type predicates are not inferred on "this"
@@ -237,9 +245,13 @@ inferTypePredicates.ts(197,7): error TS2741: Property 'z' is missing in type 'C1
     }
     declare let c: C1;
     if (c.isC2()) {
-      let c2: C2 = c; // should error
+      let c2: C2 = c;  // should error
           ~~
 !!! error TS2741: Property 'z' is missing in type 'C1' but required in type 'C2'.
-!!! related TS2728 inferTypePredicates.ts:193:3: 'z' is declared here.
+!!! related TS2728 inferTypePredicates.ts:201:3: 'z' is declared here.
+    }
+    
+    function doNotRefineDestructuredParam({x, y}: {x: number | null, y: number}) {
+      return typeof x === 'number';
     }
     

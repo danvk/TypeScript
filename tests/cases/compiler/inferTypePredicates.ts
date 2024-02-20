@@ -77,10 +77,13 @@ type Bar = Foo & {
 const list: (Foo | Bar)[] = [];
 const resultBars: Bar[] = list.filter((value) => 'bar' in value);  // should ok
 
-function isNNString(x: Foo | Bar | null) {
-  return ('bar' in x!)
+function isBarNonNull(x: Foo | Bar | null) {
+  return ('bar' in x!);
 }
-const resultBar: Bar = isNNString(list[0]);  // should ok
+const fooOrBar = list[0];
+if (isBarNonNull(fooOrBar)) {
+  const t: Bar = fooOrBar;  // should ok
+}
 
 // https://github.com/microsoft/TypeScript/issues/38390#issuecomment-626019466
 // Ryan's example (currently legal):
