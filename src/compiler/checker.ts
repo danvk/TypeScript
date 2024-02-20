@@ -37382,6 +37382,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         const functionFlags = getFunctionFlags(func);
         if (functionFlags !== FunctionFlags.Normal) return undefined;
 
+        // Only attempt to infer a type predicate if there's exactly one return.
         let singleReturn: Expression | undefined;
         if (func.body && func.body.kind !== SyntaxKind.Block) {
             singleReturn = func.body; // arrow function
@@ -37432,25 +37433,21 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 antecedent,
             };
 
-            const narrowedParamTypeTrue = getFlowTypeOfReference(param.name, initType, initType, func, trueCondition);
-            if (narrowedParamTypeTrue === initType) return undefined;
+            const trueType = getFlowTypeOfReference(param.name, initType, initType, func, trueCondition);
+            if (trueType === initType) return undefined;
 
-            // The semantics of "x is T" are that x is T if and only if it returns true.
-            // In other words, if it returns false then x is not T.
+            // "x is T" means that x is T if and only if it returns true. If it returns false then x is not T.
             // However, TS may not be able to represent "not T", in which case we can be more lax.
+            // It's safe to infer a type guard if falseType = Exclude<initType, trueType>
+            // This matches what you'd get if you called the type guard in an if/else statement.
             const falseCondition: FlowCondition = {
                 ...trueCondition,
                 flags: FlowFlags.FalseCondition,
             }
-            const narrowedParamTypeFalse = getFlowTypeOfReference(param.name, initType, initType, func, falseCondition);
-            // It's safe to infer a type guard if:
-            // narrowedParamTypeFalse = Exclude<initType, narrowedParamTypeTrue>
-            // what's the difference between a subtype and assignable relationship?
-            // XXX this isn't the same as Exclude<U, T> for boolean types.
-            const candidateFalse = filterType(initType, t => !isTypeSubtypeOf(t, narrowedParamTypeTrue));
-            const canInferGuard = isTypeIdenticalTo(candidateFalse, narrowedParamTypeFalse);
-            if (canInferGuard) {
-                return narrowedParamTypeTrue;
+            const falseType = getFlowTypeOfReference(param.name, initType, initType, func, falseCondition);
+            const candidateFalse = filterType(initType, t => !isTypeSubtypeOf(t, trueType));
+            if (isTypeIdenticalTo(candidateFalse, falseType)) {
+                return trueType;
             }
         }
     }
