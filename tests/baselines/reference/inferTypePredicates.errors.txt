@@ -1,41 +1,48 @@
-inferTypePredicates.ts(6,7): error TS2322: Type '(number | null)[]' is not assignable to type 'number[]'.
+inferTypePredicates.ts(4,7): error TS2322: Type '(number | null)[]' is not assignable to type 'number[]'.
   Type 'number | null' is not assignable to type 'number'.
     Type 'null' is not assignable to type 'number'.
+inferTypePredicates.ts(7,7): error TS2322: Type '(number | null)[]' is not assignable to type 'number[]'.
 inferTypePredicates.ts(14,7): error TS2322: Type '(number | null)[]' is not assignable to type 'number[]'.
-inferTypePredicates.ts(46,17): error TS18048: 'arr' is possibly 'undefined'.
-inferTypePredicates.ts(49,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+inferTypePredicates.ts(52,17): error TS18048: 'arr' is possibly 'undefined'.
+inferTypePredicates.ts(54,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-inferTypePredicates.ts(71,8): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
-inferTypePredicates.ts(93,46): error TS2345: Argument of type '(x: string | number) => boolean' is not assignable to parameter of type '(x: string | number) => x is string | number'.
-  Signature '(x: string | number): boolean' must be a type predicate.
+inferTypePredicates.ts(65,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+inferTypePredicates.ts(82,8): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+inferTypePredicates.ts(105,7): error TS2322: Type 'string | number' is not assignable to type 'string'.
+  Type 'number' is not assignable to type 'string'.
+inferTypePredicates.ts(107,7): error TS2322: Type 'string | number' is not assignable to type 'number'.
+  Type 'string' is not assignable to type 'number'.
 
 
-==== inferTypePredicates.ts (6 errors) ====
+==== inferTypePredicates.ts (9 errors) ====
     // https://github.com/microsoft/TypeScript/issues/16069
     
     const numsOrNull = [1, 2, 3, 4, null];
-    const filteredNums = numsOrNull.filter(x => !!x);
-    
-    const evenSquaresInline: number[] =
-          ~~~~~~~~~~~~~~~~~
+    const filteredNumsTruthy: number[] = numsOrNull.filter(x => !!x); // should error
+          ~~~~~~~~~~~~~~~~~~
 !!! error TS2322: Type '(number | null)[]' is not assignable to type 'number[]'.
 !!! error TS2322:   Type 'number | null' is not assignable to type 'number'.
 !!! error TS2322:     Type 'null' is not assignable to type 'number'.
+    const filteredNumsNonNullish: number[] = numsOrNull.filter(x => x !== null); // should ok
+    
+    const evenSquaresInline: number[] = // should error
+          ~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type '(number | null)[]' is not assignable to type 'number[]'.
         [1, 2, 3, 4]
             .map(x => x % 2 === 0 ? x * x : null)
-            .filter(x => !!x);
+            .filter(x => !!x); // tests truthiness, not non-nullishness
     
-    // const isTruthy = (x: number | null) => { return !!x; };
     const isTruthy = (x: number | null) => !!x;
     
-    const evenSquares: number[] =
+    const evenSquares: number[] =  // should error
           ~~~~~~~~~~~
 !!! error TS2322: Type '(number | null)[]' is not assignable to type 'number[]'.
         [1, 2, 3, 4]
         .map(x => x % 2 === 0 ? x * x : null)
           .filter(isTruthy);
     
-    const evenSquaresNonNull: number[] =
+    const evenSquaresNonNull: number[] =  // should ok
         [1, 2, 3, 4]
         .map(x => x % 2 === 0 ? x * x : null)
         .filter(x => x !== null);
@@ -50,11 +57,17 @@ inferTypePredicates.ts(93,46): error TS2345: Argument of type '(x: string | numb
       return ok;
     }
     
+    function isNonNullGeneric<T>(x: T) {
+      return x !== null;
+    }
+    
     // Type guards can flow between functions
     const myGuard = (o: string | undefined): o is string => !!o;
     const mySecondGuard = (o: string | undefined) => myGuard(o);
     
     // https://github.com/microsoft/TypeScript/issues/16069#issuecomment-1327449914
+    // This doesn't work because the false condition prevents type guard inference.
+    // Breaking up the filters does work.
     type MyObj = { data?: string };
     type MyArray = { list?: MyObj[] }[];
     const myArray: MyArray = [];
@@ -62,19 +75,29 @@ inferTypePredicates.ts(93,46): error TS2345: Argument of type '(x: string | numb
     const result = myArray
       .map((arr) => arr.list)
       .filter((arr) => arr && arr.length)
-      .map((arr) => arr
+      .map((arr) => arr // should error
                     ~~~
 !!! error TS18048: 'arr' is possibly 'undefined'.
-    //              ^^^ Object is possibly 'undefined'.
         .filter((obj) => obj && obj.data)
+        .map(obj => JSON.parse(obj.data))  // should error
+                               ~~~~~~~~
+!!! error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+!!! error TS2345:   Type 'undefined' is not assignable to type 'string'.
+      );
+    
+    const result2 = myArray
+      .map((arr) => arr.list)
+      .filter((arr) => !!arr)
+      .filter(arr => arr.length)
+      .map((arr) => arr // should ok
+        .filter((obj) => obj)
+        // inferring a guard here would require https://github.com/microsoft/TypeScript/issues/42384
+        .filter(obj => !!obj.data)
         .map(obj => JSON.parse(obj.data))
                                ~~~~~~~~
 !!! error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 !!! error TS2345:   Type 'undefined' is not assignable to type 'string'.
-    //                         ^^^^^^^^ Type 'undefined' is not assignable to type 'string'.
       );
-    
-    // https://github.com/microsoft/TypeScript/issues/16069#issuecomment-1335186481
     
     // https://github.com/microsoft/TypeScript/issues/16069#issuecomment-1183547889
     type Foo = {
@@ -85,13 +108,11 @@ inferTypePredicates.ts(93,46): error TS2345: Argument of type '(x: string | numb
     }
     
     const list: (Foo | Bar)[] = [];
-    const resultBar = list.filter((value) => 'bar' in value);
-    // result type should be `Bar[]`
+    const resultBar: Bar[] = list.filter((value) => 'bar' in value); // should ok
     
     // https://github.com/microsoft/TypeScript/issues/38390#issuecomment-626019466
-    // Ryan's example:
+    // Ryan's example (currently legal):
     const a = [1, "foo", 2, "bar"].filter(x => typeof x === "string");
-    // Currently legal
     a.push(10);
            ~~
 !!! error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
@@ -102,24 +123,31 @@ inferTypePredicates.ts(93,46): error TS2345: Argument of type '(x: string | numb
     }
     
     // Partition tests. The "false" case matters.
-    declare function partition<T, R extends T>(
-      els: T[], pred: (x: T) => x is R
-    ): [R[], Exclude<T, R>[]];
-    
     function isString(x: string | number) {
       return typeof x === 'string';
     }
     
-    declare let strsOrNums: (string|number)[];
-    const [strs1, nums1] = partition(strsOrNums, isString); // nums1 should be number[]
+    declare let strOrNum: string | number;
+    if (isString(strOrNum)) {
+      let t: string = strOrNum; // should ok
+    } else {
+      let t: number = strOrNum; // should ok
+    }
     
     function flakyIsString(x: string | number) {
       return typeof x === 'string' && Math.random() > 0.5;
     }
-    const [strs2, nums2] = partition(strsOrNums, flakyIsString); // nums2 should be (string|number)[]
-                                                 ~~~~~~~~~~~~~
-!!! error TS2345: Argument of type '(x: string | number) => boolean' is not assignable to parameter of type '(x: string | number) => x is string | number'.
-!!! error TS2345:   Signature '(x: string | number): boolean' must be a type predicate.
+    if (flakyIsString(strOrNum)) {
+      let t: string = strOrNum; // should error
+          ~
+!!! error TS2322: Type 'string | number' is not assignable to type 'string'.
+!!! error TS2322:   Type 'number' is not assignable to type 'string'.
+    } else {
+      let t: number = strOrNum;  // should error
+          ~
+!!! error TS2322: Type 'string | number' is not assignable to type 'number'.
+!!! error TS2322:   Type 'string' is not assignable to type 'number'.
+    }
     
     function isDate(x: object): x is Date {
       return x instanceof Date;
@@ -128,9 +156,18 @@ inferTypePredicates.ts(93,46): error TS2345: Argument of type '(x: string | numb
       return x instanceof Date;
     }
     
-    declare let maybeDates: object[];
-    const [dates1, objs1] = partition(maybeDates, isDate); // should be [Date[], object[]]
-    const [dates2, objs2] = partition(maybeDates, flakyIsDate); // should be [Date[], object[]]
+    declare let maybeDate: object;
+    if (isDate(maybeDate)) {
+      let t: Date = maybeDate; // should ok
+    } else {
+      let t: object = maybeDate;  // should ok
+    }
+    
+    if (flakyIsDate(maybeDate)) {
+      let t: Date = maybeDate; // should ok
+    } else {
+      let t: object = maybeDate;  // should ok
+    }
     
     // This should not infer a type guard since the value on which we do the refinement
     // is not related to the original parameter.
@@ -159,5 +196,32 @@ inferTypePredicates.ts(93,46): error TS2345: Argument of type '(x: string | numb
     
     function guardsOneButNotOthers(a: string|number, b: string|number, c: string|number) {
       return typeof b === 'string';
+    }
+    
+    function dunderguard(__x: number | string) {
+      return typeof __x  === 'string';
+    }
+    
+    // could infer a type guard here but it doesn't seem that helpful.
+    const booleanIdentity = (x: boolean) => x;
+    
+    // can infer "x is number | true"; debateable whether that's helpful.
+    const numOrBoolean = (x: number | boolean) => typeof x !== 'number' && x;
+    
+    // inferred guards in methods
+    interface NumberInferrer {
+      isNumber(x: number | string): x is number;
+    }
+    class Inferrer implements NumberInferrer {
+      isNumber(x: number | string) { // should ok
+        return typeof x === 'number';
+      }
+    }
+    declare let numOrStr: number | string;
+    const inf = new Inferrer();
+    if (inf.isNumber(numOrStr)) {
+      let t: number = numOrStr; // should ok
+    } else {
+      let t: string = numOrStr; // should ok
     }
     

@@ -4,22 +4,22 @@
 // https://github.com/microsoft/TypeScript/issues/16069
 
 const numsOrNull = [1, 2, 3, 4, null];
-const filteredNums = numsOrNull.filter(x => !!x);
+const filteredNumsTruthy: number[] = numsOrNull.filter(x => !!x); // should error
+const filteredNumsNonNullish: number[] = numsOrNull.filter(x => x !== null); // should ok
 
-const evenSquaresInline: number[] =
+const evenSquaresInline: number[] = // should error
     [1, 2, 3, 4]
         .map(x => x % 2 === 0 ? x * x : null)
-        .filter(x => !!x);
+        .filter(x => !!x); // tests truthiness, not non-nullishness
 
-// const isTruthy = (x: number | null) => { return !!x; };
 const isTruthy = (x: number | null) => !!x;
 
-const evenSquares: number[] =
+const evenSquares: number[] =  // should error
     [1, 2, 3, 4]
     .map(x => x % 2 === 0 ? x * x : null)
       .filter(isTruthy);
 
-const evenSquaresNonNull: number[] =
+const evenSquaresNonNull: number[] =  // should ok
     [1, 2, 3, 4]
     .map(x => x % 2 === 0 ? x * x : null)
     .filter(x => x !== null);
@@ -34,11 +34,17 @@ function isNonNullVar(x: number | null) {
   return ok;
 }
 
+function isNonNullGeneric<T>(x: T) {
+  return x !== null;
+}
+
 // Type guards can flow between functions
 const myGuard = (o: string | undefined): o is string => !!o;
 const mySecondGuard = (o: string | undefined) => myGuard(o);
 
 // https://github.com/microsoft/TypeScript/issues/16069#issuecomment-1327449914
+// This doesn't work because the false condition prevents type guard inference.
+// Breaking up the filters does work.
 type MyObj = { data?: string };
 type MyArray = { list?: MyObj[] }[];
 const myArray: MyArray = [];
@@ -46,14 +52,21 @@ const myArray: MyArray = [];
 const result = myArray
   .map((arr) => arr.list)
   .filter((arr) => arr && arr.length)
-  .map((arr) => arr
-//              ^^^ Object is possibly 'undefined'.
+  .map((arr) => arr // should error
     .filter((obj) => obj && obj.data)
-    .map(obj => JSON.parse(obj.data))
-//                         ^^^^^^^^ Type 'undefined' is not assignable to type 'string'.
+    .map(obj => JSON.parse(obj.data))  // should error
   );
 
-// https://github.com/microsoft/TypeScript/issues/16069#issuecomment-1335186481
+const result2 = myArray
+  .map((arr) => arr.list)
+  .filter((arr) => !!arr)
+  .filter(arr => arr.length)
+  .map((arr) => arr // should ok
+    .filter((obj) => obj)
+    // inferring a guard here would require https://github.com/microsoft/TypeScript/issues/42384
+    .filter(obj => !!obj.data)
+    .map(obj => JSON.parse(obj.data))
+  );
 
 // https://github.com/microsoft/TypeScript/issues/16069#issuecomment-1183547889
 type Foo = {
@@ -64,13 +77,11 @@ type Bar = Foo & {
 }
 
 const list: (Foo | Bar)[] = [];
-const resultBar = list.filter((value) => 'bar' in value);
-// result type should be `Bar[]`
+const resultBar: Bar[] = list.filter((value) => 'bar' in value); // should ok
 
 // https://github.com/microsoft/TypeScript/issues/38390#issuecomment-626019466
-// Ryan's example:
+// Ryan's example (currently legal):
 const a = [1, "foo", 2, "bar"].filter(x => typeof x === "string");
-// Currently legal
 a.push(10);
 
 // Defer to explicit type guards, even when they're incorrect.
@@ -79,21 +90,25 @@ function backwardsGuard(x: number|string): x is number {
 }
 
 // Partition tests. The "false" case matters.
-declare function partition<T, R extends T>(
-  els: T[], pred: (x: T) => x is R
-): [R[], Exclude<T, R>[]];
-
 function isString(x: string | number) {
   return typeof x === 'string';
 }
 
-declare let strsOrNums: (string|number)[];
-const [strs1, nums1] = partition(strsOrNums, isString); // nums1 should be number[]
+declare let strOrNum: string | number;
+if (isString(strOrNum)) {
+  let t: string = strOrNum; // should ok
+} else {
+  let t: number = strOrNum; // should ok
+}
 
 function flakyIsString(x: string | number) {
   return typeof x === 'string' && Math.random() > 0.5;
 }
-const [strs2, nums2] = partition(strsOrNums, flakyIsString); // nums2 should be (string|number)[]
+if (flakyIsString(strOrNum)) {
+  let t: string = strOrNum; // should error
+} else {
+  let t: number = strOrNum;  // should error
+}
 
 function isDate(x: object): x is Date {
   return x instanceof Date;
@@ -102,9 +117,18 @@ function flakyIsDate(x: object): x is Date {
   return x instanceof Date;
 }
 
-declare let maybeDates: object[];
-const [dates1, objs1] = partition(maybeDates, isDate); // should be [Date[], object[]]
-const [dates2, objs2] = partition(maybeDates, flakyIsDate); // should be [Date[], object[]]
+declare let maybeDate: object;
+if (isDate(maybeDate)) {
+  let t: Date = maybeDate; // should ok
+} else {
+  let t: object = maybeDate;  // should ok
+}
+
+if (flakyIsDate(maybeDate)) {
+  let t: Date = maybeDate; // should ok
+} else {
+  let t: object = maybeDate;  // should ok
+}
 
 // This should not infer a type guard since the value on which we do the refinement
 // is not related to the original parameter.
@@ -135,20 +159,50 @@ function guardsOneButNotOthers(a: string|number, b: string|number, c: string|num
   return typeof b === 'string';
 }
 
+function dunderguard(__x: number | string) {
+  return typeof __x  === 'string';
+}
+
+// could infer a type guard here but it doesn't seem that helpful.
+const booleanIdentity = (x: boolean) => x;
+
+// can infer "x is number | true"; debateable whether that's helpful.
+const numOrBoolean = (x: number | boolean) => typeof x !== 'number' && x;
+
+// inferred guards in methods
+interface NumberInferrer {
+  isNumber(x: number | string): x is number;
+}
+class Inferrer implements NumberInferrer {
+  isNumber(x: number | string) { // should ok
+    return typeof x === 'number';
+  }
+}
+declare let numOrStr: number | string;
+const inf = new Inferrer();
+if (inf.isNumber(numOrStr)) {
+  let t: number = numOrStr; // should ok
+} else {
+  let t: string = numOrStr; // should ok
+}
+
 
 //// [inferTypePredicates.js]
 // https://github.com/microsoft/TypeScript/issues/16069
 var numsOrNull = [1, 2, 3, 4, null];
-var filteredNums = numsOrNull.filter(function (x) { return !!x; });
-var evenSquaresInline = [1, 2, 3, 4]
+var filteredNumsTruthy = numsOrNull.filter(function (x) { return !!x; }); // should error
+var filteredNumsNonNullish = numsOrNull.filter(function (x) { return x !== null; }); // should ok
+var evenSquaresInline = // should error
+ [1, 2, 3, 4]
     .map(function (x) { return x % 2 === 0 ? x * x : null; })
-    .filter(function (x) { return !!x; });
-// const isTruthy = (x: number | null) => { return !!x; };
+    .filter(function (x) { return !!x; }); // tests truthiness, not non-nullishness
 var isTruthy = function (x) { return !!x; };
-var evenSquares = [1, 2, 3, 4]
+var evenSquares = // should error
+ [1, 2, 3, 4]
     .map(function (x) { return x % 2 === 0 ? x * x : null; })
     .filter(isTruthy);
-var evenSquaresNonNull = [1, 2, 3, 4]
+var evenSquaresNonNull = // should ok
+ [1, 2, 3, 4]
     .map(function (x) { return x % 2 === 0 ? x * x : null; })
     .filter(function (x) { return x !== null; });
 function isNonNull(x) {
@@ -159,6 +213,9 @@ function isNonNullVar(x) {
     var ok = x !== null;
     return ok;
 }
+function isNonNullGeneric(x) {
+    return x !== null;
+}
 // Type guards can flow between functions
 var myGuard = function (o) { return !!o; };
 var mySecondGuard = function (o) { return myGuard(o); };
@@ -166,40 +223,66 @@ var myArray = [];
 var result = myArray
     .map(function (arr) { return arr.list; })
     .filter(function (arr) { return arr && arr.length; })
-    .map(function (arr) { return arr
-    //              ^^^ Object is possibly 'undefined'.
+    .map(function (arr) { return arr // should error
     .filter(function (obj) { return obj && obj.data; })
-    .map(function (obj) { return JSON.parse(obj.data); }); }
-//                         ^^^^^^^^ Type 'undefined' is not assignable to type 'string'.
+    .map(function (obj) { return JSON.parse(obj.data); }); } // should error
 );
+var result2 = myArray
+    .map(function (arr) { return arr.list; })
+    .filter(function (arr) { return !!arr; })
+    .filter(function (arr) { return arr.length; })
+    .map(function (arr) { return arr // should ok
+    .filter(function (obj) { return obj; })
+    // inferring a guard here would require https://github.com/microsoft/TypeScript/issues/42384
+    .filter(function (obj) { return !!obj.data; })
+    .map(function (obj) { return JSON.parse(obj.data); }); });
 var list = [];
-var resultBar = list.filter(function (value) { return 'bar' in value; });
-// result type should be `Bar[]`
+var resultBar = list.filter(function (value) { return 'bar' in value; }); // should ok
 // https://github.com/microsoft/TypeScript/issues/38390#issuecomment-626019466
-// Ryan's example:
+// Ryan's example (currently legal):
 var a = [1, "foo", 2, "bar"].filter(function (x) { return typeof x === "string"; });
-// Currently legal
 a.push(10);
 // Defer to explicit type guards, even when they're incorrect.
 function backwardsGuard(x) {
     return typeof x === 'string';
 }
+// Partition tests. The "false" case matters.
 function isString(x) {
     return typeof x === 'string';
 }
-var _a = partition(strsOrNums, isString), strs1 = _a[0], nums1 = _a[1]; // nums1 should be number[]
+if (isString(strOrNum)) {
+    var t = strOrNum; // should ok
+}
+else {
+    var t = strOrNum; // should ok
+}
 function flakyIsString(x) {
     return typeof x === 'string' && Math.random() > 0.5;
 }
-var _b = partition(strsOrNums, flakyIsString), strs2 = _b[0], nums2 = _b[1]; // nums2 should be (string|number)[]
+if (flakyIsString(strOrNum)) {
+    var t = strOrNum; // should error
+}
+else {
+    var t = strOrNum; // should error
+}
 function isDate(x) {
     return x instanceof Date;
 }
 function flakyIsDate(x) {
     return x instanceof Date;
 }
-var _c = partition(maybeDates, isDate), dates1 = _c[0], objs1 = _c[1]; // should be [Date[], object[]]
-var _d = partition(maybeDates, flakyIsDate), dates2 = _d[0], objs2 = _d[1]; // should be [Date[], object[]]
+if (isDate(maybeDate)) {
+    var t = maybeDate; // should ok
+}
+else {
+    var t = maybeDate; // should ok
+}
+if (flakyIsDate(maybeDate)) {
+    var t = maybeDate; // should ok
+}
+else {
+    var t = maybeDate; // should ok
+}
 // This should not infer a type guard since the value on which we do the refinement
 // is not related to the original parameter.
 function irrelevantIsNumber(x) {
@@ -224,4 +307,26 @@ function doubleReturn(x) {
 }
 function guardsOneButNotOthers(a, b, c) {
     return typeof b === 'string';
+}
+function dunderguard(__x) {
+    return typeof __x === 'string';
+}
+// could infer a type guard here but it doesn't seem that helpful.
+var booleanIdentity = function (x) { return x; };
+// can infer "x is number | true"; debateable whether that's helpful.
+var numOrBoolean = function (x) { return typeof x !== 'number' && x; };
+var Inferrer = /** @class */ (function () {
+    function Inferrer() {
+    }
+    Inferrer.prototype.isNumber = function (x) {
+        return typeof x === 'number';
+    };
+    return Inferrer;
+}());
+var inf = new Inferrer();
+if (inf.isNumber(numOrStr)) {
+    var t = numOrStr; // should ok
+}
+else {
+    var t = numOrStr; // should ok
 }
