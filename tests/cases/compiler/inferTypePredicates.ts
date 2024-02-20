@@ -5,10 +5,10 @@ const numsOrNull = [1, 2, 3, 4, null];
 const filteredNumsTruthy: number[] = numsOrNull.filter(x => !!x); // should error
 const filteredNumsNonNullish: number[] = numsOrNull.filter(x => x !== null); // should ok
 
-const evenSquaresInline: number[] = // should ok
+const evenSquaresInline: number[] = // should error
     [1, 2, 3, 4]
         .map(x => x % 2 === 0 ? x * x : null)
-        .filter(x => !!x);
+        .filter(x => !!x); // tests truthiness, not non-nullishness
 
 const isTruthy = (x: number | null) => !!x;
 
