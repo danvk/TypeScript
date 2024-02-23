@@ -169,7 +169,7 @@ export function transformES2020(context: TransformationContext): (x: SourceFile 
             capturedLeft = factory.createTempVariable(hoistVariableDeclaration);
             leftExpression = factory.createAssignment(capturedLeft, leftExpression);
         }
-        let rightExpression = capturedLeft;
+        let rightExpression: Expression = capturedLeft;
         let thisArg: Expression | undefined;
         for (let i = 0; i < chain.length; i++) {
             const segment = chain[i];
