@@ -37428,11 +37428,12 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
         const predicate = checkIfExpressionRefinesAnyParameter(singleReturn);
         if (predicate) {
-            const [i, type] = predicate;
+            const [i, _type] = predicate;
             const param = func.parameters[i];
             if (isIdentifier(param.name)) {
                 // TODO: is there an alternative to the "as string" here? (It's __String)
-                return createTypePredicate(TypePredicateKind.Identifier, param.name.escapedText as string, i, type);
+                // return createTypePredicate(TypePredicateKind.Identifier, param.name.escapedText as string, i, type);
+                return undefined;
             }
         }
         return undefined;
