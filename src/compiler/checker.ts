@@ -2271,6 +2271,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     builtinGlobals.set(undefinedSymbol.escapedName, undefinedSymbol);
 
     var fileCache = new Map<string, [string, number[]]>();
+    var debugMaxDepthFlowDepth = 0;
 
     // Extensions suggested for path imports when module resolution is node16 or higher.
     // The first element of each tuple is the extension a file has.
@@ -27745,6 +27746,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
 
         function getTypeAtFlowNode(flow: FlowNode): FlowType {
+            debugMaxDepthFlowDepth = Math.max(debugMaxDepthFlowDepth, flowDepth);
             if (flowDepth === 2000) {
                 // We have made 2000 recursive invocations. To avoid overflowing the call stack we report an error
                 // and disable further control flow analysis in the containing function or module body.
@@ -37425,6 +37427,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         if (functionFlags !== FunctionFlags.Normal || func.parameters.length === 0) return undefined;
         const startMs = timestamp();
         const notes: string[] = [];
+        debugMaxDepthFlowDepth = 0;
 
         // Only attempt to infer a type predicate if there's exactly one return.
         let singleReturn: Expression | undefined;
@@ -37495,7 +37498,9 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 antecedent: sharedAntecedent,
             };
 
+            debugMaxDepthFlowDepth = 0;
             const trueType = getFlowTypeOfReference(param.name, initType, initType, func, trueCondition);
+            notes.push(`p${i} true depth=${debugMaxDepthFlowDepth}`);
             if (trueType === initType) {
                 notes.push(`p${i} unrefined`);
                 return undefined;
@@ -37507,7 +37512,9 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 ...trueCondition,
                 flags: FlowFlags.FalseCondition,
             };
+            debugMaxDepthFlowDepth = 0;
             const falseSubtype = getFlowTypeOfReference(param.name, initType, trueType, func, falseCondition);
+            notes.push(`p${i} false depth=${debugMaxDepthFlowDepth}`);
 
             notes.push(`initType=${typeToString(initType)}`);
             notes.push(`trueType=${typeToString(trueType)}`);
