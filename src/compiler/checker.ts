@@ -1093,6 +1093,8 @@ import {
 import * as moduleSpecifiers from "./_namespaces/ts.moduleSpecifiers";
 import * as performance from "./_namespaces/ts.performance";
 
+const fs = require('node:fs');
+
 const ambientModuleSymbolRegex = /^".+"$/;
 const anon = "(anonymous)" as __String & string;
 
@@ -2268,6 +2270,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     var builtinGlobals = createSymbolTable();
     builtinGlobals.set(undefinedSymbol.escapedName, undefinedSymbol);
 
+    var fileCache = new Map<string, [string, number[]]>();
+
     // Extensions suggested for path imports when module resolution is node16 or higher.
     // The first element of each tuple is the extension a file has.
     // The second element of each tuple is the extension that should be used in a path import.
@@ -2288,6 +2292,16 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     initializeTypeChecker();
 
     return checker;
+
+    function getFileContents(filename: string) {
+        const fromCache = fileCache.get(filename);
+        if (fromCache !== undefined) {
+            return fromCache;
+        }
+        const contents = fs.readFileSync(filename, 'utf-8');
+        fileCache.set(filename, contents);
+        return contents;
+    }
 
     function getCachedType(key: string | undefined) {
         return key ? cachedTypes.get(key) : undefined;
@@ -37437,8 +37451,15 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 return;
             }
             const sourceFile = findAncestor(func, isSourceFile);
-            const funcName = func.name && 'getText' in func.name ? (func.name as any).getText() : sourceFile?.text.slice(func.pos, func.end).slice(0, 50) ?? '???';
-            console.log(elapsedMs, 'ms', sourceFile?.fileName, ':', func.pos, `num_params=${func.parameters.length}`, funcName, notes);
+            if (sourceFile) {
+                const contents = getFileContents(sourceFile.fileName);
+                const funcName = func.name && isIdentifier(func.name) ? func.name.escapedText : contents.slice(func.pos, func.end).slice(0, 100);
+                // const [line, char] = posToLineCharOffset()
+                const {line, character} = getLineAndCharacterOfPosition(sourceFile, func.pos);
+                console.log(elapsedMs, 'ms', sourceFile?.fileName, `@ ${line}:${character}`, `num_params=${func.parameters.length}`, funcName, notes);
+            } else {
+                console.log(elapsedMs, 'ms', notes, 'mystery file');
+            }
         }
 
         function checkIfExpressionRefinesAnyParameter(expr: Expression): TypePredicate | undefined {
