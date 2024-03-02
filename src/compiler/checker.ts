@@ -37427,38 +37427,43 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             if (bailedEarly || !singleReturn) return undefined;
         }
 
-        return checkIfExpressionRefinesAnyParameter(singleReturn);
+        const result = checkIfExpressionRefinesAnyParameter(singleReturn);
+        logIfSlow();
+        return result;
 
-        function logIfSlow(notes: string) {
+        function logIfSlow() {
             const elapsedMs = timestamp() - startMs;
             if (elapsedMs < 1.0) {
                 return;
             }
             const sourceFile = findAncestor(func, isSourceFile);
             const funcName = func.name && 'getText' in func.name ? (func.name as any).getText() : sourceFile?.text.slice(func.pos, func.end).slice(0, 50) ?? '???';
-            console.log('  we have a winner!', sourceFile?.fileName, funcName);
-            console.log(elapsedMs, 'ms', notes);
+            console.log(elapsedMs, 'ms', sourceFile?.fileName, ':', func.pos, `num_params=${func.parameters.length}`, funcName, notes);
         }
 
         function checkIfExpressionRefinesAnyParameter(expr: Expression): TypePredicate | undefined {
             expr = skipParentheses(expr, /*excludeJSDocTypeAssertions*/ true);
             const returnType = checkExpressionCached(expr);
-            if (!(returnType.flags & TypeFlags.Boolean)) return undefined;
+            if (!(returnType.flags & TypeFlags.Boolean)) {
+                notes.push('non-boolean');
+                return undefined;
+            }
 
             return forEach(func.parameters, (param, i) => {
                 const initType = getTypeOfSymbol(param.symbol);
                 if (!initType || initType.flags & TypeFlags.Boolean || !isIdentifier(param.name) || isSymbolAssigned(param.symbol)) {
                     // Refining "x: boolean" to "x is true" or "x is false" isn't useful.
+                    notes.push(`p${i} excluded`);
                     return;
                 }
-                const trueType = checkIfExpressionRefinesParameter(expr, param, initType);
+                const trueType = checkIfExpressionRefinesParameter(expr, param, i, initType);
                 if (trueType) {
                     return createTypePredicate(TypePredicateKind.Identifier, unescapeLeadingUnderscores(param.name.escapedText), i, trueType);
                 }
             });
         }
 
-        function checkIfExpressionRefinesParameter(expr: Expression, param: ParameterDeclaration, initType: Type): Type | undefined {
+        function checkIfExpressionRefinesParameter(expr: Expression, param: ParameterDeclaration, i: number, initType: Type): Type | undefined {
             const antecedent = (expr as Expression & { flowNode?: FlowNode; }).flowNode ||
                 expr.parent.kind === SyntaxKind.ReturnStatement && (expr.parent as ReturnStatement).flowNode ||
                 { flags: FlowFlags.Start };
@@ -37469,7 +37474,10 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             };
 
             const trueType = getFlowTypeOfReference(param.name, initType, initType, func, trueCondition);
-            if (trueType === initType) return undefined;
+            if (trueType === initType) {
+                notes.push(`p${i} unrefined`);
+                return undefined;
+            }
 
             // "x is T" means that x is T if and only if it returns true. If it returns false then x is not T.
             // This means that if the function is called with an argument of type trueType, there can't be anything left in the `else` branch. It must reduce to `never`.
@@ -37478,7 +37486,13 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 flags: FlowFlags.FalseCondition,
             };
             const falseSubtype = getFlowTypeOfReference(param.name, trueType, trueType, func, falseCondition);
-            return falseSubtype.flags & TypeFlags.Never ? trueType : undefined;
+            if (falseSubtype.flags & TypeFlags.Never) {
+                notes.push(`p${i} winner`);
+                return trueType;
+            } else {
+                notes.push(`p${i} fails false`);
+                return undefined;
+            }
         }
     }
 
