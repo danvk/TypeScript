@@ -37456,9 +37456,9 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 const funcName = func.name && isIdentifier(func.name) ? func.name.escapedText : contents.slice(func.pos, func.end).slice(0, 100);
                 // const [line, char] = posToLineCharOffset()
                 const {line, character} = getLineAndCharacterOfPosition(sourceFile, func.pos);
-                console.log(elapsedMs, 'ms', sourceFile?.fileName, `@ ${line}:${character}`, `num_params=${func.parameters.length}`, funcName, notes);
+                console.log(Math.round(elapsedMs), 'ms', sourceFile?.fileName, `@ ${line}:${character}`, `num_params=${func.parameters.length}`, funcName, notes);
             } else {
-                console.log(elapsedMs, 'ms', notes, 'mystery file');
+                console.log(Math.round(elapsedMs), 'ms', notes, 'mystery file');
             }
         }
 
@@ -37485,13 +37485,14 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
 
         function checkIfExpressionRefinesParameter(expr: Expression, param: ParameterDeclaration, i: number, initType: Type): Type | undefined {
-            const antecedent = (expr as Expression & { flowNode?: FlowNode; }).flowNode ||
+            const baseAntecedent = (expr as Expression & { flowNode?: FlowNode; }).flowNode ||
                 expr.parent.kind === SyntaxKind.ReturnStatement && (expr.parent as ReturnStatement).flowNode ||
                 { flags: FlowFlags.Start };
+            const sharedAntecedent = { ...baseAntecedent, flags: baseAntecedent.flags & FlowFlags.Shared };
             const trueCondition: FlowCondition = {
                 flags: FlowFlags.TrueCondition,
                 node: expr,
-                antecedent,
+                antecedent: sharedAntecedent,
             };
 
             const trueType = getFlowTypeOfReference(param.name, initType, initType, func, trueCondition);
@@ -37507,6 +37508,11 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 flags: FlowFlags.FalseCondition,
             };
             const falseSubtype = getFlowTypeOfReference(param.name, trueType, trueType, func, falseCondition);
+
+            notes.push(`initType=${typeToString(initType)}`);
+            notes.push(`trueType=${typeToString(trueType)}`);
+            notes.push(`falseType=${typeToString(falseSubtype)}`);
+
             if (falseSubtype.flags & TypeFlags.Never) {
                 notes.push(`p${i} winner`);
                 return trueType;
