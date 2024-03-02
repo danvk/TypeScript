@@ -37507,7 +37507,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 ...trueCondition,
                 flags: FlowFlags.FalseCondition,
             };
-            const falseSubtype = getFlowTypeOfReference(param.name, trueType, trueType, func, falseCondition);
+            const falseSubtype = getFlowTypeOfReference(param.name, initType, trueType, func, falseCondition);
 
             notes.push(`initType=${typeToString(initType)}`);
             notes.push(`trueType=${typeToString(trueType)}`);
