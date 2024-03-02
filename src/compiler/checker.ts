@@ -1011,6 +1011,7 @@ import {
     ThisExpression,
     ThisTypeNode,
     ThrowStatement,
+    timestamp,
     TokenFlags,
     tokenToString,
     tracing,
@@ -37408,6 +37409,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
         const functionFlags = getFunctionFlags(func);
         if (functionFlags !== FunctionFlags.Normal || func.parameters.length === 0) return undefined;
+        const startMs = timestamp();
+        const notes: string[] = [];
 
         // Only attempt to infer a type predicate if there's exactly one return.
         let singleReturn: Expression | undefined;
@@ -37425,6 +37428,17 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
 
         return checkIfExpressionRefinesAnyParameter(singleReturn);
+
+        function logIfSlow(notes: string) {
+            const elapsedMs = timestamp() - startMs;
+            if (elapsedMs < 1.0) {
+                return;
+            }
+            const sourceFile = findAncestor(func, isSourceFile);
+            const funcName = func.name && 'getText' in func.name ? (func.name as any).getText() : sourceFile?.text.slice(func.pos, func.end).slice(0, 50) ?? '???';
+            console.log('  we have a winner!', sourceFile?.fileName, funcName);
+            console.log(elapsedMs, 'ms', notes);
+        }
 
         function checkIfExpressionRefinesAnyParameter(expr: Expression): TypePredicate | undefined {
             expr = skipParentheses(expr, /*excludeJSDocTypeAssertions*/ true);
